@@ -1,0 +1,52 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/creatures/creature_ai.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/systems/health_component.gd" id="2_health"]
+[ext_resource type="PackedScene" path="res://scenes/ui/health_bar_3d.tscn" id="3_healthbar"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_mesh"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mat"]
+albedo_color = Color(0.6, 0.16, 0.16, 1)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_attack"]
+radius = 1.6
+
+[node name="HostileCreature" type="CharacterBody3D"]
+script = ExtResource("1_script")
+self_group = &"hostile"
+target_group = &"player_side"
+species_name = "Feral Stalker"
+can_be_tamed = true
+tame_health_fraction = 0.25
+base_capture_chance = 0.3
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("CapsuleMesh_mesh")
+surface_material_override/0 = SubResource("StandardMaterial3D_mat")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2_health")
+max_health = 60.0
+
+[node name="AttackArea3D" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackArea3D"]
+shape = SubResource("SphereShape3D_attack")
+
+[node name="HealthBar" parent="." instance=ExtResource("3_healthbar")]
+height_offset = 2.1

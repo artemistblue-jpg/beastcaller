@@ -1,0 +1,42 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemies/zombie.gd" id="1_zscript"]
+[ext_resource type="Script" path="res://scripts/systems/health_component.gd" id="2_zhealth"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_zbody"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_zmesh"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_zmat"]
+albedo_color = Color(0.28, 0.5, 0.24, 1)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_zattack"]
+radius = 1.6
+
+[node name="Zombie" type="CharacterBody3D"]
+script = ExtResource("1_zscript")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_zbody")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("CapsuleMesh_zmesh")
+surface_material_override/0 = SubResource("StandardMaterial3D_zmat")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2_zhealth")
+max_health = 60.0
+
+[node name="AttackArea3D" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackArea3D"]
+shape = SubResource("SphereShape3D_zattack")

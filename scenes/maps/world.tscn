@@ -1,0 +1,165 @@
+[gd_scene format=3 uid="uid://b32i4lvqfo0e4"]
+
+[ext_resource type="PackedScene" uid="uid://duev3ew2lr1br" path="res://scenes/player/player.tscn" id="1_pcytr"]
+[ext_resource type="PackedScene" path="res://scenes/creatures/hostile_creature.tscn" id="2_hostile"]
+[ext_resource type="PackedScene" path="res://scenes/creatures/wild_monster.tscn" id="3_wild"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="4_hud"]
+[ext_resource type="PackedScene" path="res://scenes/world/tree.tscn" id="5_tree"]
+[ext_resource type="PackedScene" path="res://scenes/world/rock.tscn" id="6_rock"]
+[ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="7_touch"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_5emg7"]
+size = Vector3(120, 1, 120)
+
+[sub_resource type="BoxMesh" id="BoxMesh_7hr2a"]
+size = Vector3(120, 1, 120)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.28, 0.5, 0.22, 1)
+roughness = 1.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall"]
+size = Vector3(124, 12, 2)
+
+[sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_pcytr"]
+
+[sub_resource type="Sky" id="Sky_28y8u"]
+sky_material = SubResource("PhysicalSkyMaterial_pcytr")
+
+[sub_resource type="Environment" id="Environment_bxnbg"]
+background_mode = 2
+background_color = Color(0, 0, 1, 1)
+sky = SubResource("Sky_28y8u")
+
+[node name="World" type="Node3D" unique_id=1362977880]
+
+[node name="Ground" type="StaticBody3D" parent="." unique_id=734610388]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground" unique_id=863095188]
+shape = SubResource("BoxShape3D_5emg7")
+debug_color = Color(0, 0.6, 0.7019608, 0.41960785)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground" unique_id=1651852120]
+mesh = SubResource("BoxMesh_7hr2a")
+surface_material_override/0 = SubResource("StandardMaterial3D_ground")
+
+[node name="Boundaries" type="Node3D" parent="."]
+
+[node name="WallNorth" type="StaticBody3D" parent="Boundaries"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, -61)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Boundaries/WallNorth"]
+shape = SubResource("BoxShape3D_wall")
+
+[node name="WallSouth" type="StaticBody3D" parent="Boundaries"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 61)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Boundaries/WallSouth"]
+shape = SubResource("BoxShape3D_wall")
+
+[node name="WallEast" type="StaticBody3D" parent="Boundaries"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 61, 6, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Boundaries/WallEast"]
+shape = SubResource("BoxShape3D_wall")
+
+[node name="WallWest" type="StaticBody3D" parent="Boundaries"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -61, 6, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Boundaries/WallWest"]
+shape = SubResource("BoxShape3D_wall")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1102943466]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=864420978]
+environment = SubResource("Environment_bxnbg")
+
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=824811966]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50)
+groups=["player_spawn"]
+
+[node name="Player" parent="." unique_id=381432639 instance=ExtResource("1_pcytr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50)
+
+[node name="Scenery" type="Node3D" parent="."]
+
+[node name="Tree1" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0.5, -30)
+
+[node name="Tree2" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, 0.5, 20)
+
+[node name="Tree3" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0.5, 45)
+
+[node name="Tree4" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.5, 40)
+
+[node name="Tree5" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 0.5, 25)
+
+[node name="Tree6" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0.5, -10)
+
+[node name="Tree7" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.5, -40)
+
+[node name="Tree8" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -45)
+
+[node name="Tree9" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 0.5, -15)
+
+[node name="Tree10" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.5, 15)
+
+[node name="Rock1" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0.5, 10)
+
+[node name="Rock2" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0.5, -5)
+
+[node name="Rock3" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0.5, 5)
+
+[node name="Rock4" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.5, -25)
+
+[node name="Rock5" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38, 0.5, 40)
+
+[node name="Rock6" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45, 0.5, -35)
+
+[node name="Rock7" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0.5, 20)
+
+[node name="Rock8" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0.5, -40)
+
+[node name="Creatures" type="Node3D" parent="."]
+
+[node name="HostileCreature1" parent="Creatures" instance=ExtResource("2_hostile")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.5, -6)
+
+[node name="HostileCreature2" parent="Creatures" instance=ExtResource("2_hostile")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 1.5, -25)
+
+[node name="HostileCreature3" parent="Creatures" instance=ExtResource("2_hostile")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, 1.5, 30)
+
+[node name="WildMonster1" parent="Creatures" instance=ExtResource("3_wild")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.2, 3)
+
+[node name="WildMonster2" parent="Creatures" instance=ExtResource("3_wild")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 1.2, 15)
+
+[node name="WildMonster3" parent="Creatures" instance=ExtResource("3_wild")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1.2, 25)
+
+[node name="WildMonster4" parent="Creatures" instance=ExtResource("3_wild")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 1.2, -20)
+
+[node name="HUD" parent="." instance=ExtResource("4_hud")]
+
+[node name="TouchControls" parent="." instance=ExtResource("7_touch")]

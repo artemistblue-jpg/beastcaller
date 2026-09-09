@@ -1,0 +1,53 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/virtual_joystick.gd" id="1_joystick"]
+[ext_resource type="Script" path="res://scripts/ui/touch_controls.gd" id="2_controls"]
+
+[node name="TouchControls" type="CanvasLayer"]
+layer = 5
+script = ExtResource("2_controls")
+
+[node name="JoystickBase" type="Control" parent="."]
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = -180.0
+offset_right = 180.0
+offset_bottom = -40.0
+script = ExtResource("1_joystick")
+
+[node name="ActionButtons" type="Control" parent="."]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -260.0
+offset_top = -240.0
+offset_right = 0.0
+offset_bottom = 0.0
+
+[node name="AttackButton" type="Button" parent="ActionButtons"]
+offset_left = 170.0
+offset_top = 150.0
+offset_right = 260.0
+offset_bottom = 240.0
+theme_override_font_sizes/font_size = 20
+text = "ATK"
+
+[node name="JumpButton" type="Button" parent="ActionButtons"]
+offset_left = 170.0
+offset_top = 50.0
+offset_right = 250.0
+offset_bottom = 120.0
+theme_override_font_sizes/font_size = 18
+text = "JUMP"
+
+[node name="TameButton" type="Button" parent="ActionButtons"]
+offset_left = 70.0
+offset_top = 150.0
+offset_right = 160.0
+offset_bottom = 240.0
+theme_override_font_sizes/font_size = 18
+text = "TAME"
