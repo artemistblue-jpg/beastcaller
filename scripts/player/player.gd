@@ -82,6 +82,7 @@ func _respawn() -> void:
 	health.reset()
 	is_dead = false
 	invulnerable_timer = respawn_invulnerability
+	SaveManager.save_game()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -139,6 +140,7 @@ func _try_tame() -> void:
 			else:
 				MonsterRoster.add_to_collection(data)
 				MonsterRoster.spawn_squad(self)
+				SaveManager.save_game()
 			return
 
 

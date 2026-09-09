@@ -90,6 +90,7 @@ func _capture() -> Dictionary:
 		"species_name": species_name,
 		"max_health": health.max_health,
 	}
+	SaveManager.mark_creature_removed(name)
 	queue_free()
 	return data
 

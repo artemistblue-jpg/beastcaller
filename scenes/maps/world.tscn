@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/tree.tscn" id="5_tree"]
 [ext_resource type="PackedScene" path="res://scenes/world/rock.tscn" id="6_rock"]
 [ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="7_touch"]
+[ext_resource type="Script" path="res://scripts/maps/world.gd" id="8_world_script"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5emg7"]
 size = Vector3(120, 1, 120)
@@ -32,6 +33,7 @@ background_color = Color(0, 0, 1, 1)
 sky = SubResource("Sky_28y8u")
 
 [node name="World" type="Node3D" unique_id=1362977880]
+script = ExtResource("8_world_script")
 
 [node name="Ground" type="StaticBody3D" parent="." unique_id=734610388]
 
