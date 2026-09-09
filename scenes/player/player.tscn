@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://duev3ew2lr1br"]
 
 [ext_resource type="Script" uid="uid://dyfvkd2naglp4" path="res://scripts/player/player.gd" id="1_8afob"]
-[ext_resource type="PackedScene" uid="uid://b7xfwsr5il6fc" path="res://characters/player/Idle.fbx" id="2_dovo2"]
+[ext_resource type="PackedScene" path="res://characters/player/UAL1_Standard.glb" id="2_character"]
 [ext_resource type="Script" path="res://scripts/systems/health_component.gd" id="3_health"]
 [ext_resource type="PackedScene" path="res://scenes/ui/health_bar_3d.tscn" id="4_healthbar"]
 
@@ -29,29 +29,7 @@ current = true
 
 [node name="AttackPoint" type="Marker3D" parent="CameraPivot" unique_id=27827836]
 
-[node name="Idle" parent="." unique_id=1556460378 instance=ExtResource("2_dovo2")]
-transform = Transform3D(-1, 0, -1.509958e-07, 0, 1, 0, 1.509958e-07, 0, -1, 0, -1, 0)
-
-[node name="Skeleton3D" parent="Idle" index="0" unique_id=261911757]
-bones/11/rotation = Quaternion(0.25328454, 0.061618283, -0.2282103, 0.93806726)
-bones/13/rotation = Quaternion(-0.0016647386, -0.00080778124, 0.0069197505, 0.9999744)
-bones/15/rotation = Quaternion(-6.059341e-07, 9.9535276e-11, -0.00016426753, 1)
-bones/16/rotation = Quaternion(-6.084827e-20, 0, 0.00025564426, 1)
-bones/17/rotation = Quaternion(-1.010017e-20, 0, -8.792197e-05, 1)
-bones/19/rotation = Quaternion(-9.78174e-07, 4.9085347e-10, -0.0005018059, 0.9999999)
-bones/20/rotation = Quaternion(-1.7667906e-20, -2.646978e-23, 0.00084987143, 0.99999964)
-bones/21/rotation = Quaternion(-2.5239809e-19, 5.293956e-23, -0.000321842, 0.99999994)
-bones/23/rotation = Quaternion(6.963166e-08, 1.085061e-11, 0.0001558293, 1)
-bones/24/rotation = Quaternion(-3.761026e-20, 0, -0.0002215151, 1)
-bones/25/rotation = Quaternion(2.317801e-20, 6.617445e-24, -0.0001128051, 1)
-bones/27/rotation = Quaternion(4.6707196e-06, 2.430471e-09, 0.000520363, 0.9999999)
-bones/28/rotation = Quaternion(4.8573726e-21, -6.617445e-24, 0.00084623165, 0.99999964)
-bones/29/rotation = Quaternion(-1.2429584e-21, 8.271806e-25, -0.0004967778, 0.9999999)
-bones/32/rotation = Quaternion(-0.024606362, -0.0025613955, 0.103504546, 0.99432135)
-bones/37/rotation = Quaternion(-0.0015313593, 0.0007452554, -0.006073121, 0.99998015)
-bones/45/rotation = Quaternion(-4.2758992e-07, -8.846624e-12, 2.0689502e-05, 1)
-bones/55/rotation = Quaternion(2.704767e-09, 0.0103564765, 0.9999464, 2.6115273e-07)
-bones/60/rotation = Quaternion(2.8191485e-09, 0.01036796, 0.9999463, 2.71895e-07)
+[node name="CharacterModel" parent="." unique_id=1556460378 instance=ExtResource("2_character")]
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("3_health")
@@ -68,4 +46,4 @@ shape = SubResource("SphereShape3D_atk")
 [node name="HealthBar" parent="." instance=ExtResource("4_healthbar")]
 height_offset = 2.3
 
-[editable path="Idle"]
+[editable path="CharacterModel"]

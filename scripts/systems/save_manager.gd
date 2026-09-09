@@ -2,22 +2,31 @@ extends Node
 
 ## Autoload singleton: owns the single save file for the whole game.
 ## Tracks the player's position/health, the tamed-monster roster, and
-## which hand-placed world creatures have already been killed or
-## captured — so progress survives a restart, a phone lock, or the app
-## getting backgrounded.
+## every creature spawner's respawn cooldown — so progress survives a
+## restart, a phone lock, or the app getting backgrounded.
 
 const SAVE_PATH := "user://savegame.json"
 const AUTOSAVE_INTERVAL := 30.0
 
-## Names of Creatures-node children that no longer exist in the world
-## (tamed or killed). Seeded from the save file on load, appended to as
-## the game is played.
-var removed_creatures: Array[String] = []
+## The save file as it was found at boot — read once here so every
+## other script (player, spawners, world) can pull its own slice of it
+## without each re-reading the file itself. As an autoload, this node's
+## _ready() runs before any scene-tree node's, so it's always populated
+## in time.
+var loaded_save: Dictionary = {}
+
+## Spawner node name -> {"respawn_ready_at": unix_time}. Only holds
+## entries for spawners currently on cooldown; a spawner with no entry
+## here is assumed to have a live creature.
+var spawner_states: Dictionary = {}
 
 @onready var _autosave_timer: Timer = Timer.new()
 
 
 func _ready() -> void:
+	loaded_save = _read_save_file()
+	spawner_states = (loaded_save.get("spawners", {}) as Dictionary).duplicate(true)
+
 	add_child(_autosave_timer)
 	_autosave_timer.wait_time = AUTOSAVE_INTERVAL
 	_autosave_timer.autostart = true
@@ -37,23 +46,21 @@ func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH)
 
 
-## Called by a creature the instant it's tamed or killed, so a reload
-## never brings back something the player already dealt with.
-func mark_creature_removed(creature_name: String) -> void:
-	if creature_name in removed_creatures:
-		return
-	removed_creatures.append(creature_name)
+## The spawner's saved state, or an empty Dictionary if it has none
+## (meaning it should just spawn its creature normally).
+func get_spawner_state(spawner_name: String) -> Dictionary:
+	return (loaded_save.get("spawners", {}) as Dictionary).get(spawner_name, {})
+
+
+func set_spawner_state(spawner_name: String, state: Dictionary) -> void:
+	spawner_states[spawner_name] = state
 	save_game()
 
 
-## Used only while applying a loaded save, before gameplay has had a
-## chance to append anything of its own — fills the list without
-## triggering a redundant save.
-func seed_removed_creatures(names: Array) -> void:
-	for raw_name in names:
-		var creature_name := String(raw_name)
-		if creature_name not in removed_creatures:
-			removed_creatures.append(creature_name)
+func clear_spawner_state(spawner_name: String) -> void:
+	if spawner_states.has(spawner_name):
+		spawner_states.erase(spawner_name)
+		save_game()
 
 
 func save_game() -> void:
@@ -79,7 +86,7 @@ func save_game() -> void:
 			"collection": MonsterRoster.collection,
 			"active_squad": MonsterRoster.active_squad,
 		},
-		"removed_creatures": removed_creatures,
+		"spawners": spawner_states,
 	}
 
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -90,9 +97,7 @@ func save_game() -> void:
 	file.close()
 
 
-## Returns the parsed save Dictionary, or an empty Dictionary if there's
-## no save yet or it couldn't be read.
-func load_game() -> Dictionary:
+func _read_save_file() -> Dictionary:
 	if not has_save():
 		return {}
 

@@ -18,8 +18,8 @@ extends CharacterBody3D
 
 @onready var camera_pivot: Node3D = $CameraPivot
 @onready var spring_arm: SpringArm3D = $CameraPivot/SpringArm3D
-@onready var character_model: Node3D = $Idle
-@onready var animation_player: AnimationPlayer = $Idle/AnimationPlayer
+@onready var character_model: Node3D = $CharacterModel
+@onready var animation_player: AnimationPlayer = $CharacterModel/AnimationPlayer
 @onready var health: HealthComponent = $HealthComponent
 @onready var attack_area: Area3D = $AttackArea3D
 
@@ -33,6 +33,7 @@ var respawn_position: Vector3 = Vector3.ZERO
 var jump_requested: bool = false
 var touch_controls: Node = null
 var invulnerable_timer: float = 0.0
+var _current_animation: String = ""
 
 
 func _ready() -> void:
@@ -48,8 +49,7 @@ func _ready() -> void:
 	spring_arm.add_excluded_object(get_rid())
 
 	# Start the character's idle animation.
-	if animation_player.has_animation("mixamo_com"):
-		animation_player.play("mixamo_com")
+	_play_animation("Idle")
 
 	# Respawn point: use a "player_spawn" marker if the level has one,
 	# otherwise fall back to wherever we started.
@@ -69,6 +69,7 @@ func take_damage(amount: float) -> void:
 
 func _on_died() -> void:
 	is_dead = true
+	_play_animation("Death01")
 	# TODO: swap this for a real game-over screen once we build one —
 	# for now, just respawn after a short delay so you're never stuck.
 	print("Player died. Respawning in %.1fs..." % respawn_delay)
@@ -169,6 +170,32 @@ func _get_touch_controls() -> Node:
 	return touch_controls
 
 
+## Switches to a clip only when it isn't already playing, so a call every
+## physics frame doesn't keep restarting the animation from frame 0.
+func _play_animation(clip_name: String) -> void:
+	if clip_name == _current_animation:
+		return
+	var qualified_name := _resolve_animation_name(clip_name)
+	if qualified_name.is_empty():
+		push_warning("Player: no animation found for '%s'" % clip_name)
+		return
+	animation_player.play(qualified_name)
+	_current_animation = clip_name
+
+
+## The character's glTF file might have its animations under a named
+## AnimationLibrary rather than the default one — check both so a bare
+## clip name like "Idle" still resolves wherever the importer put it.
+func _resolve_animation_name(clip_name: String) -> String:
+	if animation_player.has_animation(clip_name):
+		return clip_name
+	for library_name in animation_player.get_animation_library_list():
+		var qualified_name: String = "%s/%s" % [library_name, clip_name]
+		if animation_player.has_animation(qualified_name):
+			return qualified_name
+	return ""
+
+
 func _physics_process(delta: float) -> void:
 	attack_timer = max(attack_timer - delta, 0.0)
 	invulnerable_timer = max(invulnerable_timer - delta, 0.0)
@@ -231,6 +258,8 @@ func _physics_process(delta: float) -> void:
 			rotation_speed * delta
 		)
 
+		_play_animation("Jog_Fwd")
+
 	else:
 		velocity.x = move_toward(
 			velocity.x,
@@ -243,5 +272,7 @@ func _physics_process(delta: float) -> void:
 			0.0,
 			deceleration * delta
 		)
+
+		_play_animation("Idle")
 
 	move_and_slide()

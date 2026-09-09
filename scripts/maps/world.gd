@@ -1,26 +1,22 @@
 extends Node3D
 
-## Applies whatever save data exists the moment the world loads: removes
-## creatures already dealt with in a previous session, restores the
-## player's position/health, and restores the tamed-monster roster
-## (respawning the active squad next to the player).
-
-@onready var creatures: Node3D = $Creatures
+## Restores whatever was saved the moment the world loads: the player's
+## position/health and the tamed-monster roster (respawning the active
+## squad next to them). Each CreatureSpawner restores its own respawn
+## cooldown independently — see creature_spawner.gd.
 
 
 func _ready() -> void:
-	# Deferred so every child (Player, Creatures, etc.) has already run
+	# Deferred so every child (Player, spawners, etc.) has already run
 	# its own _ready() — in particular so the player has registered
 	# itself in the "player" group before we go looking for it.
 	call_deferred("_apply_save_data")
 
 
 func _apply_save_data() -> void:
-	var data := SaveManager.load_game()
+	var data := SaveManager.loaded_save
 	if data.is_empty():
 		return
-
-	_remove_saved_creatures(data.get("removed_creatures", []))
 
 	var players := get_tree().get_nodes_in_group("player")
 	if players.is_empty():
@@ -29,14 +25,6 @@ func _apply_save_data() -> void:
 
 	_apply_player_data(player, data.get("player", {}))
 	_apply_roster_data(data.get("roster", {}), player)
-
-
-func _remove_saved_creatures(removed: Array) -> void:
-	SaveManager.seed_removed_creatures(removed)
-	for raw_name in removed:
-		var creature := creatures.get_node_or_null(String(raw_name))
-		if creature:
-			creature.queue_free()
 
 
 func _apply_player_data(player: Node3D, player_data: Dictionary) -> void:

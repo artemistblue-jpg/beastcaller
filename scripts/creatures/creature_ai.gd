@@ -101,7 +101,7 @@ func _capture() -> Dictionary:
 		"species_name": species_name,
 		"max_health": health.max_health,
 	}
-	_mark_removed_if_world_creature()
+	_notify_spawner_if_world_creature()
 	queue_free()
 	return data
 
@@ -205,16 +205,19 @@ func _try_attack() -> void:
 
 
 func _on_died() -> void:
-	_mark_removed_if_world_creature()
+	_notify_spawner_if_world_creature()
 	queue_free()
 
 
 ## This script is shared by hand-placed hostile creatures (self_group
 ## "hostile") and the player's own summoned monsters (self_group
-## "player_side"). Only the former are hand-placed world fixtures that
-## a save file needs to remember as gone — a summon despawning is
-## expected every time its owner logs back in and doesn't belong in the
-## save at all.
-func _mark_removed_if_world_creature() -> void:
-	if self_group == &"hostile":
-		SaveManager.mark_creature_removed(name)
+## "player_side"). Only the former are placed by a CreatureSpawner that
+## needs to know to start its respawn cooldown — a summon despawning is
+## expected every time its owner logs back in and has no spawner to
+## notify.
+func _notify_spawner_if_world_creature() -> void:
+	if self_group != &"hostile":
+		return
+	var spawner := get_parent()
+	if spawner and spawner.has_method("notify_creature_removed"):
+		spawner.notify_creature_removed()

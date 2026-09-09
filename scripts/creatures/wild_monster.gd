@@ -90,9 +90,19 @@ func _capture() -> Dictionary:
 		"species_name": species_name,
 		"max_health": health.max_health,
 	}
-	SaveManager.mark_creature_removed(name)
+	_notify_spawner_removed()
 	queue_free()
 	return data
+
+
+## If this monster was placed by a CreatureSpawner (see
+## creature_spawner.gd), tell it we're gone so it starts its respawn
+## cooldown. Wild monsters aren't currently spawned any other way, but
+## the check keeps this safe if that ever changes.
+func _notify_spawner_removed() -> void:
+	var spawner := get_parent()
+	if spawner and spawner.has_method("notify_creature_removed"):
+		spawner.notify_creature_removed()
 
 
 func _enrage() -> void:
