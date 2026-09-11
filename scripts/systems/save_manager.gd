@@ -20,12 +20,19 @@ var loaded_save: Dictionary = {}
 ## here is assumed to have a live creature.
 var spawner_states: Dictionary = {}
 
+## One-way story milestones ("god_voice_silenced" and whatever a future
+## quest/boss adds) — a generic bag rather than one bool per beat, so
+## adding the next one is a set_story_flag() call, not a new save-data
+## field every time. See has_story_flag()/set_story_flag().
+var story_flags: Dictionary = {}
+
 @onready var _autosave_timer: Timer = Timer.new()
 
 
 func _ready() -> void:
 	loaded_save = _read_save_file()
 	spawner_states = (loaded_save.get("spawners", {}) as Dictionary).duplicate(true)
+	story_flags = (loaded_save.get("story_flags", {}) as Dictionary).duplicate()
 
 	add_child(_autosave_timer)
 	_autosave_timer.wait_time = AUTOSAVE_INTERVAL
@@ -63,6 +70,47 @@ func clear_spawner_state(spawner_name: String) -> void:
 		save_game()
 
 
+func has_story_flag(flag: String) -> bool:
+	return bool(story_flags.get(flag, false))
+
+
+## One-way — a flag that's already set stays set and doesn't re-save.
+## See story_boss.gd for the first user of this (the "god_voice_silenced"
+## flag set when the story boss dies).
+func set_story_flag(flag: String) -> void:
+	if story_flags.get(flag, false):
+		return
+	story_flags[flag] = true
+	save_game()
+
+
+## Wipes the save file and every autoload's in-memory progress, then
+## reloads the world scene from scratch — used by the on-screen Restart
+## button (see hud.gd) to jump straight back to a brand-new game, so
+## the intro dialogue and starting inventory (see world.gd's
+## _apply_save_data()) can be replayed for testing without needing to
+## uninstall the app or clear its data by hand.
+##
+## Only clears the OTHER autoloads' state here, not this one's own
+## _autosave_timer — that timer is set up once in _ready(), which
+## doesn't run again on a scene reload (autoloads persist across it),
+## so it just keeps ticking and will happily autosave the fresh state.
+func restart_game() -> void:
+	if FileAccess.file_exists(SAVE_PATH):
+		DirAccess.remove_absolute(SAVE_PATH)
+
+	loaded_save = {}
+	spawner_states = {}
+	story_flags = {}
+
+	MonsterRoster.reset()
+	InventoryManager.reset()
+	GauntletManager.reset()
+	SkillManager.reset()
+
+	get_tree().reload_current_scene()
+
+
 func save_game() -> void:
 	var players := get_tree().get_nodes_in_group("player")
 	if players.is_empty():
@@ -87,6 +135,10 @@ func save_game() -> void:
 			"active_squad": MonsterRoster.active_squad,
 		},
 		"spawners": spawner_states,
+		"story_flags": story_flags,
+		"inventory": InventoryManager.to_save_data(),
+		"gauntlet": GauntletManager.to_save_data(),
+		"skills": SkillManager.to_save_data(),
 	}
 
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)

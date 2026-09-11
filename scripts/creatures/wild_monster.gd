@@ -26,6 +26,26 @@ extends CharacterBody3D
 @export var enrage_speed_multiplier: float = 1.4
 @export var enrage_damage_multiplier: float = 1.6
 
+## Gauntlet gate for taming this creature — see GauntletManager and
+## player.gd's _try_tame().
+@export var required_gauntlet_tier: int = 1
+@export var capture_energy_cost: float = 15.0
+## Capture chance used instead of the normal calculation when the
+## player's gauntlet tier is below required_gauntlet_tier — the attempt
+## is still allowed, just a long shot.
+@export var underleveled_capture_chance: float = 0.05
+
+## Optional item drop on a successful tame — see ItemDatabase.
+@export var loot_item_id: String = ""
+@export var loot_chance: float = 0.5
+@export var loot_min: int = 1
+@export var loot_max: int = 1
+
+## Monster Essence (currency + skill-sphere fuel — see SkillManager)
+## awarded on every successful tame, unlike the chance-based loot above.
+@export var essence_min: int = 3
+@export var essence_max: int = 8
+
 @onready var health: HealthComponent = $HealthComponent
 @onready var attack_area: Area3D = $AttackArea3D
 
@@ -47,9 +67,22 @@ var target: Node3D = null
 func _ready() -> void:
 	add_to_group("wild_monster")
 	add_to_group("tameable")
+	# Also join "hostile" — not because these are aggressive, but because
+	# it's the group summoned pets search for targets in (see
+	# creature_ai.gd's target_group). Without this, tamed pets could
+	# never find/attack a wild_monster at all. The player's own punches
+	# already special-cased around this gap by checking "hostile" OR
+	# "wild_monster" directly; joining both groups here closes the gap
+	# for pets too instead of needing every future combatant to know
+	# about the split.
+	add_to_group("hostile")
 	home_position = global_position
 	wander_target = global_position
 	health.health_changed.connect(_on_health_changed)
+	# HealthComponent emits "died" at 0 HP — without listening for it, a
+	# wild_monster that gets killed outright (rather than tamed) just
+	# sits there at 0 HP forever, since nothing ever called queue_free().
+	health.died.connect(_on_died)
 
 
 func _on_health_changed(current: float, max_health: float) -> void:
@@ -61,13 +94,20 @@ func take_damage(amount: float) -> void:
 	health.take_damage(amount)
 
 
-## Called by the player. Returns the capture data on success, or an
-## empty Dictionary on failure (the monster handles its own reaction).
-func attempt_tame() -> Dictionary:
+## Called by the player, passing their gauntlet's current tier. Returns
+## the capture data on success, or an empty Dictionary on failure (the
+## monster handles its own reaction). gauntlet_tier defaults high so a
+## caller that doesn't pass one gets the normal, non-penalized chance.
+func attempt_tame(gauntlet_tier: int = 999) -> Dictionary:
 	if not is_tameable:
 		return {}
 
-	if randf() <= _current_capture_chance():
+	var chance: float = _current_capture_chance()
+	if gauntlet_tier < required_gauntlet_tier:
+		chance = underleveled_capture_chance
+	chance = clamp(chance + SkillManager.get_taming_bonus(), 0.0, 1.0)
+
+	if randf() <= chance:
 		return _capture()
 
 	_enrage()
@@ -90,9 +130,30 @@ func _capture() -> Dictionary:
 		"species_name": species_name,
 		"max_health": health.max_health,
 	}
+	_remove_and_reward()
+	return data
+
+
+## Killed outright rather than tamed — still worth the same loot/essence
+## as a capture (matches how creature_ai.gd treats a hostile creature's
+## death and capture identically), it just doesn't join your roster.
+func _on_died() -> void:
+	_remove_and_reward()
+
+
+func _remove_and_reward() -> void:
+	_drop_loot()
+	SkillManager.add_essence(randi_range(essence_min, essence_max))
 	_notify_spawner_removed()
 	queue_free()
-	return data
+
+
+func _drop_loot() -> void:
+	if loot_item_id == "" or not ItemDatabase.has_item(loot_item_id):
+		return
+	if randf() > loot_chance:
+		return
+	InventoryManager.add_item(loot_item_id, randi_range(loot_min, loot_max))
 
 
 ## If this monster was placed by a CreatureSpawner (see

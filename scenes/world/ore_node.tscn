@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/gatherable_node.gd" id="1_gather"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_ore"]
+radius = 0.9
+
+[sub_resource type="SphereMesh" id="SphereMesh_ore"]
+radius = 0.9
+height = 1.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ore"]
+albedo_color = Color(0.35, 0.45, 0.55, 1)
+metallic = 0.6
+roughness = 0.4
+
+[node name="OreNode" type="StaticBody3D"]
+script = ExtResource("1_gather")
+skill_id = "mining"
+item_id = "scrap_metal"
+yield_min = 1
+yield_max = 2
+respawn_delay = 30.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("SphereShape3D_ore")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.9, 0, 0, 0, 0.6, 0, 0, 0, 0.9, 0, 0.4, 0)
+mesh = SubResource("SphereMesh_ore")
+surface_material_override/0 = SubResource("StandardMaterial3D_ore")

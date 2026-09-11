@@ -1,51 +1,59 @@
 [gd_scene load_steps=7 format=3]
 
-[ext_resource type="Script" path="res://scripts/creatures/creature_ai.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/creatures/story_boss.gd" id="1_script"]
 [ext_resource type="Script" path="res://scripts/systems/health_component.gd" id="2_health"]
 [ext_resource type="PackedScene" path="res://scenes/ui/health_bar_3d.tscn" id="3_healthbar"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
-radius = 0.4
-height = 1.8
+radius = 0.9
+height = 3.4
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_mesh"]
-radius = 0.4
-height = 1.8
+radius = 0.9
+height = 3.4
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mat"]
-albedo_color = Color(0.6, 0.16, 0.16, 1)
+albedo_color = Color(0.12, 0.05, 0.16, 1)
+emission_enabled = true
+emission = Color(0.4, 0.05, 0.5, 1)
+emission_energy_multiplier = 0.6
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_attack"]
-radius = 1.6
+radius = 2.6
 
-[node name="HostileCreature" type="CharacterBody3D"]
+[node name="StoryBoss" type="CharacterBody3D"]
 script = ExtResource("1_script")
+move_speed = 2.0
+detection_range = 18.0
+attack_range = 2.6
+attack_damage = 28.0
+attack_cooldown = 1.4
+species_name = "The Dying God's Shadow"
 self_group = &"hostile"
 target_group = &"player_side"
-species_name = "Feral Stalker"
-can_be_tamed = true
-tame_health_fraction = 0.25
-base_capture_chance = 0.3
-loot_item_id = "scrap_metal"
-loot_chance = 0.4
+can_be_tamed = false
+loot_item_id = "ancient_sigil"
+loot_chance = 1.0
 loot_min = 1
-loot_max = 2
+loot_max = 1
+essence_min = 80
+essence_max = 120
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 shape = SubResource("CapsuleShape3D_body")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 mesh = SubResource("CapsuleMesh_mesh")
 surface_material_override/0 = SubResource("StandardMaterial3D_mat")
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("2_health")
-max_health = 60.0
+max_health = 400.0
 
 [node name="AttackArea3D" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 collision_layer = 0
 collision_mask = 1
 
@@ -53,4 +61,4 @@ collision_mask = 1
 shape = SubResource("SphereShape3D_attack")
 
 [node name="HealthBar" parent="." instance=ExtResource("3_healthbar")]
-height_offset = 2.1
+height_offset = 3.8

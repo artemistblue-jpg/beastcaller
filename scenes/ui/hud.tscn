@@ -9,7 +9,7 @@ script = ExtResource("1_script")
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 320.0
-offset_bottom = 120.0
+offset_bottom = 170.0
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 12
@@ -25,6 +25,20 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 text = "HP: -- / --"
 
+[node name="GauntletLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+text = "Gauntlet: -- / --"
+
+[node name="EssenceLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+text = "Essence: 0"
+
 [node name="CollectionLabel" type="Label" parent="Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -38,3 +52,19 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 text = "Squad: (empty)"
+
+[node name="RestartButton" type="Button" parent="."]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -118.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 52.0
+theme_override_font_sizes/font_size = 16
+text = "Restart"
+
+[node name="RestartConfirm" type="ConfirmationDialog" parent="."]
+title = "Restart game?"
+initial_position = 1
+dialog_text = "This wipes ALL progress (roster, inventory, essence, gauntlet) and jumps back to a brand-new game, intro dialogue included. Only meant for testing — there's no undo."
+ok_button_text = "Restart"

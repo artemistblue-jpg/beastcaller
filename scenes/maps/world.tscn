@@ -9,29 +9,58 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/touch_controls.tscn" id="7_touch"]
 [ext_resource type="Script" path="res://scripts/maps/world.gd" id="8_world_script"]
 [ext_resource type="Script" path="res://scripts/systems/creature_spawner.gd" id="9_spawner"]
+[ext_resource type="PackedScene" path="res://scenes/ui/inventory_screen.tscn" id="11_inventory"]
+[ext_resource type="PackedScene" path="res://scenes/ui/skill_screen.tscn" id="12_skills"]
+[ext_resource type="PackedScene" path="res://scenes/ui/party_screen.tscn" id="13_party"]
+[ext_resource type="Script" path="res://scripts/systems/chest_spawner.gd" id="14_chest_spawner"]
+[ext_resource type="PackedScene" path="res://scenes/world/chest.tscn" id="15_chest"]
+[ext_resource type="PackedScene" path="res://scenes/world/ore_node.tscn" id="16_ore"]
+[ext_resource type="PackedScene" path="res://scenes/world/tree_node.tscn" id="17_treenode"]
+[ext_resource type="PackedScene" path="res://scenes/world/shop_npc.tscn" id="18_shopnpc"]
+[ext_resource type="PackedScene" path="res://scenes/ui/shop_screen.tscn" id="19_shopscreen"]
+[ext_resource type="PackedScene" path="res://scenes/world/pond.tscn" id="20_pond"]
+[ext_resource type="PackedScene" path="res://scenes/world/fishing_spot.tscn" id="21_fishingspot"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5emg7"]
-size = Vector3(120, 1, 120)
+size = Vector3(240, 1, 240)
 
 [sub_resource type="BoxMesh" id="BoxMesh_7hr2a"]
-size = Vector3(120, 1, 120)
+size = Vector3(240, 1, 240)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 albedo_color = Color(0.28, 0.5, 0.22, 1)
 roughness = 1.0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wall"]
-size = Vector3(124, 12, 2)
+size = Vector3(244, 12, 2)
 
 [sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_pcytr"]
+turbidity = 8.0
+ground_color = Color(0.35, 0.3, 0.22, 1)
+energy_multiplier = 1.1
 
 [sub_resource type="Sky" id="Sky_28y8u"]
 sky_material = SubResource("PhysicalSkyMaterial_pcytr")
 
 [sub_resource type="Environment" id="Environment_bxnbg"]
 background_mode = 2
-background_color = Color(0, 0, 1, 1)
+background_color = Color(0.55, 0.7, 0.85, 1)
 sky = SubResource("Sky_28y8u")
+ambient_light_source = 3
+ambient_light_energy = 0.7
+tonemap_mode = 3
+tonemap_exposure = 1.1
+glow_enabled = true
+glow_intensity = 0.8
+glow_bloom = 0.15
+fog_enabled = true
+fog_light_color = Color(0.72, 0.78, 0.85, 1)
+fog_light_energy = 1.0
+fog_sun_scatter = 0.2
+fog_density = 0.008
+fog_sky_affect = 0.5
+fog_depth_begin = 30.0
+fog_depth_end = 190.0
 
 [node name="World" type="Node3D" unique_id=1362977880]
 script = ExtResource("8_world_script")
@@ -49,134 +78,363 @@ surface_material_override/0 = SubResource("StandardMaterial3D_ground")
 [node name="Boundaries" type="Node3D" parent="."]
 
 [node name="WallNorth" type="StaticBody3D" parent="Boundaries"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, -61)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, -121)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Boundaries/WallNorth"]
 shape = SubResource("BoxShape3D_wall")
 
 [node name="WallSouth" type="StaticBody3D" parent="Boundaries"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 61)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 121)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Boundaries/WallSouth"]
 shape = SubResource("BoxShape3D_wall")
 
 [node name="WallEast" type="StaticBody3D" parent="Boundaries"]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 61, 6, 0)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 121, 6, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Boundaries/WallEast"]
 shape = SubResource("BoxShape3D_wall")
 
 [node name="WallWest" type="StaticBody3D" parent="Boundaries"]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -61, 6, 0)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -121, 6, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Boundaries/WallWest"]
 shape = SubResource("BoxShape3D_wall")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1102943466]
+rotation_degrees = Vector3(-50, -30, 0)
+light_color = Color(1.0, 0.95, 0.85, 1)
+light_energy = 1.2
+shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=864420978]
 environment = SubResource("Environment_bxnbg")
 
 [node name="PlayerSpawn" type="Marker3D" parent="." unique_id=824811966]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -100)
 groups=["player_spawn"]
 
 [node name="Player" parent="." unique_id=381432639 instance=ExtResource("1_pcytr")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -100)
+
+[node name="ShopNPC" parent="." instance=ExtResource("18_shopnpc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -95)
 
 [node name="Scenery" type="Node3D" parent="."]
 
 [node name="Tree1" parent="Scenery" instance=ExtResource("5_tree")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0.5, -30)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, 0.5, -60)
 
 [node name="Tree2" parent="Scenery" instance=ExtResource("5_tree")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, 0.5, 20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 0.5, 40)
 
 [node name="Tree3" parent="Scenery" instance=ExtResource("5_tree")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0.5, 45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0.5, 90)
 
 [node name="Tree4" parent="Scenery" instance=ExtResource("5_tree")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.5, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0.5, 80)
 
 [node name="Tree5" parent="Scenery" instance=ExtResource("5_tree")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 0.5, 25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 0.5, 50)
 
 [node name="Tree6" parent="Scenery" instance=ExtResource("5_tree")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0.5, -10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 0.5, -20)
 
 [node name="Tree7" parent="Scenery" instance=ExtResource("5_tree")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.5, -40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 0.5, -80)
 
 [node name="Tree8" parent="Scenery" instance=ExtResource("5_tree")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -45)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -90)
 
 [node name="Tree9" parent="Scenery" instance=ExtResource("5_tree")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 0.5, -15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 0.5, -30)
 
 [node name="Tree10" parent="Scenery" instance=ExtResource("5_tree")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.5, 15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.5, 30)
+
+[node name="Tree11" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -100, 0.5, -100)
+
+[node name="Tree12" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 0.5, -100)
+
+[node name="Tree13" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 0.5, 100)
+
+[node name="Tree14" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -100, 0.5, 100)
+
+[node name="Tree15" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 0.5, 0)
+
+[node name="Tree16" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 0.5, 0)
+
+[node name="Tree17" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 60)
+
+[node name="Tree18" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -60)
+
+[node name="Tree19" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -100, 0.5, 0)
+
+[node name="Tree20" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 0.5, 0)
+
+[node name="Tree21" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 100)
+
+[node name="Tree22" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 0.5, 70)
+
+[node name="Tree23" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0.5, -70)
+
+[node name="Tree24" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, 0.5, 50)
+
+[node name="Tree25" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 80, 0.5, -50)
+
+[node name="Tree26" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0.5, -100)
+
+[node name="Tree27" parent="Scenery" instance=ExtResource("5_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.5, 100)
 
 [node name="Rock1" parent="Scenery" instance=ExtResource("6_rock")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0.5, 10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0.5, 20)
 
 [node name="Rock2" parent="Scenery" instance=ExtResource("6_rock")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0.5, -5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0.5, -10)
 
 [node name="Rock3" parent="Scenery" instance=ExtResource("6_rock")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0.5, 5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, 0.5, 10)
 
 [node name="Rock4" parent="Scenery" instance=ExtResource("6_rock")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.5, -25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.5, -50)
 
 [node name="Rock5" parent="Scenery" instance=ExtResource("6_rock")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38, 0.5, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76, 0.5, 80)
 
 [node name="Rock6" parent="Scenery" instance=ExtResource("6_rock")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45, 0.5, -35)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 0.5, -70)
 
 [node name="Rock7" parent="Scenery" instance=ExtResource("6_rock")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0.5, 20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0.5, 40)
 
 [node name="Rock8" parent="Scenery" instance=ExtResource("6_rock")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0.5, -40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0.5, -80)
+
+[node name="Rock9" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110, 0.5, -30)
+
+[node name="Rock10" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 110, 0.5, 30)
+
+[node name="Rock11" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0.5, 110)
+
+[node name="Rock12" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0.5, -110)
+
+[node name="Rock13" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 0.5, 90)
+
+[node name="Rock14" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 0.5, -90)
+
+[node name="Rock15" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 0.5, -20)
+
+[node name="Rock16" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 0.5, 20)
+
+[node name="Rock17" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.5, 60)
+
+[node name="Rock18" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0.5, -60)
+
+[node name="Rock19" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 0.5, 60)
+
+[node name="Rock20" parent="Scenery" instance=ExtResource("6_rock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -100, 0.5, -60)
 
 [node name="Creatures" type="Node3D" parent="."]
 
 [node name="HostileCreature1" type="Node3D" parent="Creatures"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.5, -6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 1.5, -12)
 script = ExtResource("9_spawner")
 creature_scene = ExtResource("2_hostile")
 
 [node name="HostileCreature2" type="Node3D" parent="Creatures"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 1.5, -25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 1.5, -50)
 script = ExtResource("9_spawner")
 creature_scene = ExtResource("2_hostile")
 
 [node name="HostileCreature3" type="Node3D" parent="Creatures"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, 1.5, 30)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 1.5, 60)
 script = ExtResource("9_spawner")
 creature_scene = ExtResource("2_hostile")
 
 [node name="WildMonster1" type="Node3D" parent="Creatures"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.2, 3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.2, 6)
 script = ExtResource("9_spawner")
 creature_scene = ExtResource("3_wild")
 
 [node name="WildMonster2" type="Node3D" parent="Creatures"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 1.2, 15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 1.2, 30)
 script = ExtResource("9_spawner")
 creature_scene = ExtResource("3_wild")
 
 [node name="WildMonster3" type="Node3D" parent="Creatures"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1.2, 25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 1.2, 50)
 script = ExtResource("9_spawner")
 creature_scene = ExtResource("3_wild")
 
 [node name="WildMonster4" type="Node3D" parent="Creatures"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 1.2, -20)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 1.2, -40)
 script = ExtResource("9_spawner")
 creature_scene = ExtResource("3_wild")
+
+[node name="HostileCreature4" type="Node3D" parent="Creatures"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 1.5, -70)
+script = ExtResource("9_spawner")
+creature_scene = ExtResource("2_hostile")
+
+[node name="HostileCreature5" type="Node3D" parent="Creatures"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 1.5, -90)
+script = ExtResource("9_spawner")
+creature_scene = ExtResource("2_hostile")
+
+[node name="HostileCreature6" type="Node3D" parent="Creatures"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 1.5, 60)
+script = ExtResource("9_spawner")
+creature_scene = ExtResource("2_hostile")
+
+[node name="WildMonster5" type="Node3D" parent="Creatures"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 1.2, 10)
+script = ExtResource("9_spawner")
+creature_scene = ExtResource("3_wild")
+
+[node name="WildMonster6" type="Node3D" parent="Creatures"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 1.2, -10)
+script = ExtResource("9_spawner")
+creature_scene = ExtResource("3_wild")
+
+[node name="WildMonster7" type="Node3D" parent="Creatures"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1.2, 90)
+script = ExtResource("9_spawner")
+creature_scene = ExtResource("3_wild")
+
+[node name="WildMonster8" type="Node3D" parent="Creatures"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 1.2, -90)
+script = ExtResource("9_spawner")
+creature_scene = ExtResource("3_wild")
+
+[node name="Chests" type="Node3D" parent="."]
+
+[node name="ChestSpot1" type="Node3D" parent="Chests"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 0.4, -30)
+script = ExtResource("14_chest_spawner")
+creature_scene = ExtResource("15_chest")
+
+[node name="ChestSpot2" type="Node3D" parent="Chests"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0.4, 70)
+script = ExtResource("14_chest_spawner")
+creature_scene = ExtResource("15_chest")
+
+[node name="ChestSpot3" type="Node3D" parent="Chests"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 80, 0.4, 70)
+script = ExtResource("14_chest_spawner")
+creature_scene = ExtResource("15_chest")
+
+[node name="ChestSpot4" type="Node3D" parent="Chests"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, 0.4, -10)
+script = ExtResource("14_chest_spawner")
+creature_scene = ExtResource("15_chest")
+
+[node name="ChestSpot5" type="Node3D" parent="Chests"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 40)
+script = ExtResource("14_chest_spawner")
+creature_scene = ExtResource("15_chest")
+
+[node name="ChestSpot6" type="Node3D" parent="Chests"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 0.4, -70)
+script = ExtResource("14_chest_spawner")
+creature_scene = ExtResource("15_chest")
+
+[node name="ChestSpot7" type="Node3D" parent="Chests"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 0.4, 80)
+script = ExtResource("14_chest_spawner")
+creature_scene = ExtResource("15_chest")
+
+[node name="ChestSpot8" type="Node3D" parent="Chests"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 0.4, -100)
+script = ExtResource("14_chest_spawner")
+creature_scene = ExtResource("15_chest")
+
+[node name="Gatherables" type="Node3D" parent="."]
+
+[node name="OreNode1" parent="Gatherables" instance=ExtResource("16_ore")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0.4, -70)
+
+[node name="OreNode2" parent="Gatherables" instance=ExtResource("16_ore")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 0.4, 24)
+
+[node name="OreNode3" parent="Gatherables" instance=ExtResource("16_ore")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 0.4, 16)
+
+[node name="TreeNode1" parent="Gatherables" instance=ExtResource("17_treenode")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1.0, 60)
+
+[node name="TreeNode2" parent="Gatherables" instance=ExtResource("17_treenode")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 1.0, -96)
+
+[node name="TreeNode3" parent="Gatherables" instance=ExtResource("17_treenode")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 1.0, 40)
+
+[node name="OreNode4" parent="Gatherables" instance=ExtResource("16_ore")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 0.4, -40)
+
+[node name="OreNode5" parent="Gatherables" instance=ExtResource("16_ore")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 0.4, 40)
+
+[node name="OreNode6" parent="Gatherables" instance=ExtResource("16_ore")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, -110)
+
+[node name="TreeNode4" parent="Gatherables" instance=ExtResource("17_treenode")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 1.0, -20)
+
+[node name="TreeNode5" parent="Gatherables" instance=ExtResource("17_treenode")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 1.0, 70)
+
+[node name="TreeNode6" parent="Gatherables" instance=ExtResource("17_treenode")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 1.0, 90)
+
+[node name="Pond" parent="." instance=ExtResource("20_pond")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+
+[node name="FishingSpot1" parent="Gatherables" instance=ExtResource("21_fishingspot")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0.4, 0)
+
+[node name="FishingSpot2" parent="Gatherables" instance=ExtResource("21_fishingspot")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0.4, 0)
+
+[node name="FishingSpot3" parent="Gatherables" instance=ExtResource("21_fishingspot")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, -9)
 
 [node name="HUD" parent="." instance=ExtResource("4_hud")]
 
 [node name="TouchControls" parent="." instance=ExtResource("7_touch")]
+
+[node name="InventoryScreen" parent="." instance=ExtResource("11_inventory")]
+
+[node name="SkillScreen" parent="." instance=ExtResource("12_skills")]
+
+[node name="PartyScreen" parent="." instance=ExtResource("13_party")]
+
+[node name="ShopScreen" parent="." instance=ExtResource("19_shopscreen")]

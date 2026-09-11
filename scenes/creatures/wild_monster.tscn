@@ -22,6 +22,10 @@ radius = 1.3
 script = ExtResource("1_script")
 species_name = "Sparkit"
 base_capture_chance = 0.85
+loot_item_id = "herb"
+loot_chance = 0.5
+loot_min = 1
+loot_max = 1
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)

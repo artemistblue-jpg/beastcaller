@@ -1,0 +1,99 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/inventory_screen.gd" id="1_script"]
+
+[node name="InventoryScreen" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_script")
+
+[node name="Root" type="Control" parent="."]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Dim" type="ColorRect" parent="Root"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.55)
+
+[node name="Panel" type="Panel" parent="Root"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -260.0
+offset_right = 300.0
+offset_bottom = 260.0
+
+[node name="VBox" type="VBoxContainer" parent="Root/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+theme_override_constants/separation = 10
+
+[node name="TitleRow" type="HBoxContainer" parent="Root/Panel/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Root/Panel/VBox/TitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 22
+text = "Inventory"
+
+[node name="CloseButton" type="Button" parent="Root/Panel/VBox/TitleRow"]
+layout_mode = 2
+text = "Close"
+
+[node name="Tabs" type="TabContainer" parent="Root/Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Consumables" type="ScrollContainer" parent="Root/Panel/VBox/Tabs"]
+layout_mode = 2
+
+[node name="ConsumablesList" type="VBoxContainer" parent="Root/Panel/VBox/Tabs/Consumables"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Gauntlet" type="ScrollContainer" parent="Root/Panel/VBox/Tabs"]
+visible = false
+layout_mode = 2
+
+[node name="GauntletList" type="VBoxContainer" parent="Root/Panel/VBox/Tabs/Gauntlet"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Materials" type="ScrollContainer" parent="Root/Panel/VBox/Tabs"]
+visible = false
+layout_mode = 2
+
+[node name="MaterialsList" type="VBoxContainer" parent="Root/Panel/VBox/Tabs/Materials"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="KeyItems" type="ScrollContainer" parent="Root/Panel/VBox/Tabs"]
+visible = false
+layout_mode = 2
+
+[node name="KeyItemsList" type="VBoxContainer" parent="Root/Panel/VBox/Tabs/KeyItems"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Craft" type="ScrollContainer" parent="Root/Panel/VBox/Tabs"]
+visible = false
+layout_mode = 2
+
+[node name="CraftList" type="VBoxContainer" parent="Root/Panel/VBox/Tabs/Craft"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6

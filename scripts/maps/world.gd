@@ -15,16 +15,77 @@ func _ready() -> void:
 
 func _apply_save_data() -> void:
 	var data := SaveManager.loaded_save
-	if data.is_empty():
-		return
 
 	var players := get_tree().get_nodes_in_group("player")
 	if players.is_empty():
 		return
 	var player: Node3D = players[0]
 
+	if data.is_empty():
+		_seed_starting_inventory()
+		_play_intro_dialogue()
+		return
+
 	_apply_player_data(player, data.get("player", {}))
 	_apply_roster_data(data.get("roster", {}), player)
+	_apply_inventory_data(data.get("inventory", {}))
+	_apply_gauntlet_data(data.get("gauntlet", {}))
+	_apply_skill_data(data.get("skills", {}))
+
+
+## A brand-new save (or an old save from before the inventory system
+## existed) starts with a few materials rather than nothing, so there's
+## something to test crafting/the gauntlet with right away.
+func _seed_starting_inventory() -> void:
+	InventoryManager.add_item("herb", 4)
+	InventoryManager.add_item("scrap_metal", 4)
+	InventoryManager.add_item("battery_cell", 1)
+
+
+## Opening lines for a brand-new save — the "voice in your head" is a
+## dying god, defeated by the Demon Lord, spending its last strength to
+## summon champions (you and others) and hand out fragments of its own
+## power (the gauntlet) since it can no longer hold back the creatures
+## it used to keep in check. Both the god and the Demon Lord stay
+## unnamed for now — easy to name later once tone/lore firms up.
+##
+## TODO: the voice is meant to actually go silent partway through the
+## game as a real story beat once the god finally dies — not just
+## flavor text. That needs a real trigger (a boss fight, a quest
+## milestone) to hang off of, which doesn't exist yet — wire it up once
+## the main questline/boss system is built rather than faking it here.
+func _play_intro_dialogue() -> void:
+	DialogueBox.say([
+		"Your eyes open. Trees. Sky. Silence. You don't know this place — and worse, you don't know yourself.",
+		{"speaker": "???", "text": "You're awake. Good. There isn't much time — I'm fading, and I won't be able to hold on much longer."},
+		{"speaker": "???", "text": "I was a god, once. The Demon Lord saw to the \"was.\""},
+		{"speaker": "???", "text": "You've been summoned here with the last of what I have left. And you are not the only one."},
+		{"speaker": "???", "text": "The creatures tearing this world apart were mine to hold back. Without me, they run wild — and worse things are stirring behind them."},
+	])
+
+
+func _apply_inventory_data(inventory_data: Dictionary) -> void:
+	if inventory_data.is_empty():
+		_seed_starting_inventory()
+		return
+	InventoryManager.load_save_data(inventory_data)
+
+
+## The gauntlet's own defaults (tier 1, full energy) already cover a
+## brand-new save, so this only needs to act when there's real saved
+## state to restore.
+func _apply_gauntlet_data(gauntlet_data: Dictionary) -> void:
+	if gauntlet_data.is_empty():
+		return
+	GauntletManager.load_save_data(gauntlet_data)
+
+
+## Same reasoning as the gauntlet above — SkillManager's own defaults
+## (0 essence, every skill at level 0) already cover a brand-new save.
+func _apply_skill_data(skill_data: Dictionary) -> void:
+	if skill_data.is_empty():
+		return
+	SkillManager.load_save_data(skill_data)
 
 
 func _apply_player_data(player: Node3D, player_data: Dictionary) -> void:
