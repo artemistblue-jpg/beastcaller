@@ -120,6 +120,9 @@ func _apply_roster_data(roster_data: Dictionary, player: Node3D) -> void:
 		MonsterRoster.collection = _to_dict_array(roster_data["collection"])
 	if roster_data.has("active_squad"):
 		MonsterRoster.active_squad = _to_dict_array(roster_data["active_squad"])
+	# So the RELEASE/RECALL state (see touch_controls.gd) survives a
+	# reload instead of silently resetting to "Follow" every time.
+	MonsterRoster.squad_independent = bool(roster_data.get("squad_independent", false))
 
 	# Migrates any save made before duplicate species were merged into
 	# power levels — a no-op for a save that's already deduped.

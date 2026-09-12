@@ -100,12 +100,41 @@ var _mage_range_applied: bool = false
 ## Healer role only — see _try_heal_ally().
 var _heal_timer: float = 0.0
 
+## Every tamed species' summon uses this same generic scene
+## (summon_monster.tscn) rather than its own species .tscn, so it has no
+## built-in CreatureModel of its own — without this, a tamed monster's
+## squad instance shows a plain placeholder instead of its real mesh
+## (the wild/hostile version of the same species already has its own
+## real model baked into its own .tscn; this table exists only to give
+## the *summon* version the same look). Keep this in sync with each
+## species .tscn's own CreatureModel ext_resource path.
+const SPECIES_MODEL_PATHS: Dictionary = {
+	"Ember Fang": "res://characters/monsters/dino.glb",
+	"Duskwyrm": "res://characters/monsters/dragon_evolved.glb",
+	"Tidewisp": "res://characters/monsters/glub.glb",
+	"Glowmoth": "res://characters/monsters/ghost.glb",
+	"Feral Stalker": "res://characters/monsters/goleling.glb",
+	"Sparkit": "res://characters/monsters/pigeon.glb",
+}
+
 ## How many times this exact species has been tamed — see
 ## MonsterRoster.add_to_collection()/_power_up(). Only ever arrives via
 ## configure() (a hand-placed wild/hostile creature stays at the default
 ## of 1, so ElementSystem.get_power_multiplier() is a no-op for it); see
 ## _apply_role_stats() for where it actually affects stats.
 var power_level: int = 1
+
+## Set by MonsterRoster.set_squad_independent() (the RELEASE/RECALL
+## button — see touch_controls.gd) for player-side summons only. Once
+## true, this summon stops following its owner entirely and wanders on
+## its own instead — see set_independent() and _wander(). Combat itself
+## doesn't change either way: an independent summon still fights
+## whatever wanders into its own detection_range, same as always.
+var is_independent: bool = false
+var _wander_origin: Vector3 = Vector3.ZERO
+var _wander_target: Vector3 = Vector3.ZERO
+var _wander_timer: float = 0.0
+const INDEPENDENT_WANDER_RADIUS: float = 10.0
 
 
 func _ready() -> void:
@@ -177,6 +206,21 @@ func get_role() -> int:
 	return role
 
 
+## Called by MonsterRoster (set_squad_independent(), and _spawn_one() for
+## anything that spawns while the squad is already set to independent).
+## Turning it on takes a fresh wander origin from wherever this summon
+## currently is, so it starts roaming from where it was released rather
+## than snapping back toward some stale earlier position; turning it back
+## off needs no cleanup — _idle_movement() just goes back to checking
+## follow_owner_when_idle again.
+func set_independent(value: bool) -> void:
+	is_independent = value
+	if value:
+		_wander_origin = global_position
+		_wander_target = global_position
+		_wander_timer = 0.0
+
+
 func configure(data: Dictionary, new_owner: Node3D = null, index: int = -1) -> void:
 	owner_to_follow = new_owner
 	squad_index = index
@@ -190,9 +234,34 @@ func configure(data: Dictionary, new_owner: Node3D = null, index: int = -1) -> v
 		power_level = data["power_level"]
 	_apply_role_stats(false)
 	_apply_mage_range_boost()
+	_apply_species_model()
 	if health and data.has("max_health"):
 		health.max_health = data["max_health"]
 		health.current_health = health.max_health
+
+
+## Swaps in the real per-species mesh for a summoned squad member — see
+## SPECIES_MODEL_PATHS. Only ever relevant for the generic summon scene
+## (self_group "player_side"); a hand-placed wild/hostile creature comes
+## with its own real CreatureModel already in its own .tscn, so this
+## leaves those completely alone rather than risking swapping a model
+## that's already correct. Safe to call more than once (e.g. re-tamed
+## after fainting/reviving) — clears out whatever model is already there
+## first instead of stacking a second one on top.
+func _apply_species_model() -> void:
+	if self_group != &"player_side" or not SPECIES_MODEL_PATHS.has(species_name):
+		return
+
+	var old_model := get_node_or_null("CreatureModel")
+	if old_model != null:
+		old_model.queue_free()
+
+	var model_scene: PackedScene = load(SPECIES_MODEL_PATHS[species_name])
+	if model_scene == null:
+		return
+	var model := model_scene.instantiate()
+	model.name = "CreatureModel"
+	add_child(model)
 
 
 func take_damage(amount: float) -> void:
@@ -301,6 +370,10 @@ func _physics_process(delta: float) -> void:
 
 
 func _idle_movement(delta: float) -> void:
+	if is_independent:
+		_wander(delta)
+		return
+
 	if follow_owner_when_idle and owner_to_follow != null and is_instance_valid(owner_to_follow):
 		var to_owner: Vector3 = owner_to_follow.global_position - global_position
 		to_owner.y = 0.0
@@ -313,6 +386,35 @@ func _idle_movement(delta: float) -> void:
 
 	velocity.x = move_toward(velocity.x, 0.0, acceleration * delta)
 	velocity.z = move_toward(velocity.z, 0.0, acceleration * delta)
+
+
+## Independent-mode idle behavior — same shape as wild_monster.gd's own
+## _process_wander(): pick a random point within INDEPENDENT_WANDER_RADIUS
+## of wherever this summon was when it was released, drift toward it,
+## then pick a new one after a random pause. It'll still break off to
+## fight (see _physics_process()'s target check, which runs before this
+## is ever called) the moment something shows up in detection_range.
+func _wander(delta: float) -> void:
+	_wander_timer -= delta
+	if _wander_timer <= 0.0:
+		_wander_timer = randf_range(2.0, 5.0)
+		var offset := Vector3(
+			randf_range(-INDEPENDENT_WANDER_RADIUS, INDEPENDENT_WANDER_RADIUS),
+			0.0,
+			randf_range(-INDEPENDENT_WANDER_RADIUS, INDEPENDENT_WANDER_RADIUS)
+		)
+		_wander_target = _wander_origin + offset
+
+	var to_target: Vector3 = _wander_target - global_position
+	to_target.y = 0.0
+	if to_target.length() > 0.5:
+		var direction := to_target.normalized()
+		velocity.x = move_toward(velocity.x, direction.x * move_speed, acceleration * delta)
+		velocity.z = move_toward(velocity.z, direction.z * move_speed, acceleration * delta)
+		_face_direction(direction, delta)
+	else:
+		velocity.x = move_toward(velocity.x, 0.0, acceleration * delta)
+		velocity.z = move_toward(velocity.z, 0.0, acceleration * delta)
 
 
 func _find_target() -> void:

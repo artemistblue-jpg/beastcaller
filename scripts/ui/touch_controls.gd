@@ -12,6 +12,7 @@ extends CanvasLayer
 @onready var skill_button: Button = $ActionButtons/SkillButton
 @onready var party_button: Button = $ActionButtons/PartyButton
 @onready var quest_button: Button = $ActionButtons/QuestButton
+@onready var release_button: Button = $ActionButtons/ReleaseButton
 
 var _player: Node = null
 
@@ -25,6 +26,9 @@ func _ready() -> void:
 	skill_button.pressed.connect(_on_skill_pressed)
 	party_button.pressed.connect(_on_party_pressed)
 	quest_button.pressed.connect(_on_quest_pressed)
+	release_button.pressed.connect(_on_release_pressed)
+	MonsterRoster.squad_mode_changed.connect(_refresh_release_button)
+	_refresh_release_button(MonsterRoster.squad_independent)
 
 
 func get_movement_input() -> Vector2:
@@ -79,3 +83,16 @@ func _on_quest_pressed() -> void:
 	var quest_screens := get_tree().get_nodes_in_group("quest_screen")
 	if quest_screens.size() > 0 and quest_screens[0].has_method("toggle"):
 		quest_screens[0].toggle()
+
+
+## Flips the whole squad between following the player and roaming/fighting
+## on their own — see MonsterRoster.set_squad_independent(). The button
+## label always reflects the CURRENT state (what pressing it will do is
+## the opposite), same convention as a mute button showing a speaker icon
+## when sound is on.
+func _on_release_pressed() -> void:
+	MonsterRoster.set_squad_independent(not MonsterRoster.squad_independent)
+
+
+func _refresh_release_button(is_independent: bool) -> void:
+	release_button.text = "RECALL" if is_independent else "RELEASE"

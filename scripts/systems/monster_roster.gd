@@ -13,6 +13,11 @@ extends Node
 ## creatures are already harder to tame in the first place.
 
 signal roster_changed
+## Fired whenever the whole squad flips between "Follow" and
+## "Independent" — see set_squad_independent(). Separate from
+## roster_changed so UI that only cares about this one flag (the
+## release/recall button) doesn't have to re-filter every roster event.
+signal squad_mode_changed(is_independent: bool)
 
 const SQUAD_LIMIT := 4
 const SUMMON_SCENE := preload("res://scenes/creatures/summon_monster.tscn")
@@ -28,6 +33,15 @@ var active_squad: Array[Dictionary] = []
 ## spawned into a world yet).
 var spawned_summons: Array[Node3D] = []
 
+## Whole-squad toggle (see the on-screen RELEASE/RECALL button in
+## touch_controls.gd) — true once the player has sent their squad off to
+## fight on their own instead of following. Applied to every summon as
+## it spawns (see _spawn_one()), and pushed live to whatever's already
+## spawned when the player flips it (see set_squad_independent()).
+## Persisted in the save file (see save_manager.gd/world.gd) so it
+## survives a reload instead of silently resetting to "Follow".
+var squad_independent: bool = false
+
 ## Whoever spawn_squad() was last called for — remembered so revive()
 ## can drop the revived monster straight back into the world instead of
 ## only taking effect the next time the whole squad respawns.
@@ -42,8 +56,24 @@ func reset() -> void:
 	_despawn_squad()
 	collection.clear()
 	active_squad.clear()
+	squad_independent = false
 	_player_ref = null
 	roster_changed.emit()
+
+
+## Flips the whole squad between following the player and fighting off
+## on their own, and immediately applies it to whatever's currently
+## spawned (a fainted/unspawned slot just picks it up next time it
+## spawns — see _spawn_one()). Returns the new state, so a caller like
+## touch_controls.gd can update its button label off the return value
+## instead of re-reading squad_independent itself.
+func set_squad_independent(value: bool) -> bool:
+	squad_independent = value
+	for summon in spawned_summons:
+		if is_instance_valid(summon) and summon.has_method("set_independent"):
+			summon.set_independent(value)
+	squad_mode_changed.emit(value)
+	return value
 
 
 ## Only one of each species is ever kept — taming a species already in
@@ -216,6 +246,8 @@ func _spawn_one(index: int, around: Node3D, parent: Node) -> Node3D:
 
 	if summon.has_method("configure"):
 		summon.configure(monster_data, around, index)
+	if squad_independent and summon.has_method("set_independent"):
+		summon.set_independent(true)
 
 	return summon
 

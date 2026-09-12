@@ -83,3 +83,11 @@ offset_right = 420.0
 offset_bottom = 240.0
 theme_override_font_sizes/font_size = 16
 text = "QUEST"
+
+[node name="ReleaseButton" type="Button" parent="ActionButtons"]
+offset_left = 0.0
+offset_top = 150.0
+offset_right = 90.0
+offset_bottom = 240.0
+theme_override_font_sizes/font_size = 14
+text = "RELEASE"

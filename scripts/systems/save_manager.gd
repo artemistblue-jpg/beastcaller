@@ -134,6 +134,7 @@ func save_game() -> void:
 		"roster": {
 			"collection": MonsterRoster.collection,
 			"active_squad": MonsterRoster.active_squad,
+			"squad_independent": MonsterRoster.squad_independent,
 		},
 		"spawners": spawner_states,
 		"story_flags": story_flags,
