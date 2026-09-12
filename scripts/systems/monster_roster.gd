@@ -46,11 +46,89 @@ func reset() -> void:
 	roster_changed.emit()
 
 
+## Only one of each species is ever kept — taming a species already in
+## your collection doesn't add a second copy (and can't sneak a
+## duplicate into active_squad either). Instead it powers up the one you
+## have: see _power_up(). A genuinely new species is added as normal and
+## auto-joins the active squad if there's room, same as before.
 func add_to_collection(monster_data: Dictionary) -> void:
+	var species: String = String(monster_data.get("species_name", ""))
+	var existing_index: int = _find_species_index(collection, species)
+
+	if existing_index >= 0:
+		_power_up(collection[existing_index])
+		# collection and active_squad hold separate Dictionary instances
+		# once a save has round-tripped through JSON, so the squad copy
+		# (if this species is currently fielded) needs its own update.
+		var squad_index: int = _find_species_index(active_squad, species)
+		if squad_index >= 0:
+			_power_up(active_squad[squad_index])
+		roster_changed.emit()
+		return
+
+	monster_data["power_level"] = 1
+	monster_data["base_max_health"] = monster_data.get("max_health", 20.0)
 	collection.append(monster_data)
 	if active_squad.size() < SQUAD_LIMIT:
 		active_squad.append(monster_data)
 	roster_changed.emit()
+
+
+func _find_species_index(list: Array[Dictionary], species: String) -> int:
+	for i in list.size():
+		if String(list[i].get("species_name", "")) == species:
+			return i
+	return -1
+
+
+## +1 power level, and max_health recomputed from base_max_health so the
+## bonus is always ElementSystem.get_power_multiplier(power_level) exactly
+## — never compounded on top of an already-boosted number. See
+## creature_ai.gd's configure()/_apply_role_stats() for where the matching
+## attack-damage bonus gets applied (max_health travels with the saved
+## data directly; attack_damage is derived fresh each spawn, so it reads
+## power_level itself instead).
+func _power_up(monster_data: Dictionary) -> void:
+	var power_level: int = int(monster_data.get("power_level", 1)) + 1
+	var base_health: float = float(monster_data.get("base_max_health", monster_data.get("max_health", 20.0)))
+	monster_data["power_level"] = power_level
+	monster_data["base_max_health"] = base_health
+	monster_data["max_health"] = base_health * ElementSystem.get_power_multiplier(power_level)
+
+
+## One-time cleanup for a save made before duplicate species were merged
+## into power levels — folds any existing duplicate entries for the same
+## species into a single one (summing their power levels) instead of
+## leaving old saves showing two "Sparkit" rows side by side forever.
+## Called once right after a save's roster data loads (see world.gd's
+## _apply_roster_data()); a no-op on a save that's already deduped, or a
+## brand-new one with nothing loaded yet.
+func dedupe_and_power_existing() -> void:
+	collection = _dedupe_list(collection)
+	active_squad = _dedupe_list(active_squad)
+	if active_squad.size() > SQUAD_LIMIT:
+		active_squad = active_squad.slice(0, SQUAD_LIMIT)
+
+
+func _dedupe_list(list: Array[Dictionary]) -> Array[Dictionary]:
+	var merged: Array[Dictionary] = []
+	for entry in list:
+		var species: String = String(entry.get("species_name", ""))
+		var existing_index: int = _find_species_index(merged, species)
+		if existing_index >= 0:
+			var target: Dictionary = merged[existing_index]
+			var combined_power: int = int(target.get("power_level", 1)) + int(entry.get("power_level", 1))
+			var base_health: float = float(target.get("base_max_health", target.get("max_health", 20.0)))
+			target["power_level"] = combined_power
+			target["base_max_health"] = base_health
+			target["max_health"] = base_health * ElementSystem.get_power_multiplier(combined_power)
+		else:
+			if not entry.has("power_level"):
+				entry["power_level"] = 1
+			if not entry.has("base_max_health"):
+				entry["base_max_health"] = entry.get("max_health", 20.0)
+			merged.append(entry)
+	return merged
 
 
 func spawn_squad(around: Node3D) -> void:

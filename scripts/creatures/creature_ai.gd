@@ -100,6 +100,13 @@ var _mage_range_applied: bool = false
 ## Healer role only — see _try_heal_ally().
 var _heal_timer: float = 0.0
 
+## How many times this exact species has been tamed — see
+## MonsterRoster.add_to_collection()/_power_up(). Only ever arrives via
+## configure() (a hand-placed wild/hostile creature stays at the default
+## of 1, so ElementSystem.get_power_multiplier() is a no-op for it); see
+## _apply_role_stats() for where it actually affects stats.
+var power_level: int = 1
+
 
 func _ready() -> void:
 	_base_max_health = health.max_health
@@ -125,14 +132,15 @@ func _ready() -> void:
 ## so re-scaling it here again would double-apply it.
 func _apply_role_stats(scale_health: bool) -> void:
 	var mult: Dictionary = ElementSystem.ROLE_STAT_MULTIPLIERS.get(role, {})
+	var power_mult: float = ElementSystem.get_power_multiplier(power_level)
 	move_speed = _base_move_speed * float(mult.get("move_speed", 1.0))
-	attack_damage = _base_attack_damage * float(mult.get("attack_damage", 1.0))
+	attack_damage = _base_attack_damage * float(mult.get("attack_damage", 1.0)) * power_mult
 	attack_range = _base_attack_range
 	if role == ElementSystem.Role.MAGE:
 		attack_range *= ElementSystem.MAGE_RANGE_MULTIPLIER
 
 	if scale_health and health:
-		var new_max: float = _base_max_health * float(mult.get("max_health", 1.0))
+		var new_max: float = _base_max_health * float(mult.get("max_health", 1.0)) * power_mult
 		health.max_health = new_max
 		health.current_health = new_max
 		health.health_changed.emit(health.current_health, health.max_health)
@@ -178,6 +186,8 @@ func configure(data: Dictionary, new_owner: Node3D = null, index: int = -1) -> v
 		element = data["element"]
 	if data.has("role"):
 		role = data["role"]
+	if data.has("power_level"):
+		power_level = data["power_level"]
 	_apply_role_stats(false)
 	_apply_mage_range_boost()
 	if health and data.has("max_health"):

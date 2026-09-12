@@ -99,6 +99,19 @@ const HEALER_HEAL_AMOUNT: float = 12.0
 const HEALER_HEAL_RADIUS: float = 8.0
 const HEALER_SELF_HEAL_AMOUNT: float = 6.0
 
+## MonsterRoster caps you at one of each species (see its
+## add_to_collection()) — taming a duplicate doesn't add a second copy,
+## it powers up the one you already have instead: +8% max HP and attack
+## per repeat tame. Linear rather than compounding, always computed off
+## the same stored base_max_health/base attack, so "power level 3" is
+## always exactly +16%, not a moving target based on when it was last
+## recalculated.
+const POWER_BONUS_PER_LEVEL: float = 0.08
+
+
+func get_power_multiplier(power_level: int) -> float:
+	return 1.0 + float(max(power_level - 1, 0)) * POWER_BONUS_PER_LEVEL
+
 
 ## Combat damage multiplier for attacker_element hitting defender_element.
 ## Neutral is a hard exception on both sides — it's never in

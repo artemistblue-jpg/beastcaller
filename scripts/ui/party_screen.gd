@@ -78,11 +78,15 @@ func _build_squad_row(index: int) -> Control:
 
 	var element_name: String = ElementSystem.get_element_name(monster_data.get("element", 0))
 	var role_name: String = ElementSystem.get_role_name(monster_data.get("role", 0))
+	var power_level: int = int(monster_data.get("power_level", 1))
+	var name_text: String = String(monster_data.get("species_name", "Monster"))
+	if power_level > 1:
+		name_text += " Lv.%d" % power_level
 
 	var label := Label.new()
 	var status_text: String = "Fainted" if is_fainted else "Active"
 	label.text = "%s (%s / %s) — %s (%d HP)" % [
-		String(monster_data.get("species_name", "Monster")),
+		name_text,
 		element_name,
 		role_name,
 		status_text,

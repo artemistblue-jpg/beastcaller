@@ -121,6 +121,10 @@ func _apply_roster_data(roster_data: Dictionary, player: Node3D) -> void:
 	if roster_data.has("active_squad"):
 		MonsterRoster.active_squad = _to_dict_array(roster_data["active_squad"])
 
+	# Migrates any save made before duplicate species were merged into
+	# power levels — a no-op for a save that's already deduped.
+	MonsterRoster.dedupe_and_power_existing()
+
 	MonsterRoster.roster_changed.emit()
 
 	if MonsterRoster.active_squad.size() > 0:
