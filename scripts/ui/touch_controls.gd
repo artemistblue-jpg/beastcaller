@@ -11,6 +11,7 @@ extends CanvasLayer
 @onready var bag_button: Button = $ActionButtons/BagButton
 @onready var skill_button: Button = $ActionButtons/SkillButton
 @onready var party_button: Button = $ActionButtons/PartyButton
+@onready var quest_button: Button = $ActionButtons/QuestButton
 
 var _player: Node = null
 
@@ -23,6 +24,7 @@ func _ready() -> void:
 	bag_button.pressed.connect(_on_bag_pressed)
 	skill_button.pressed.connect(_on_skill_pressed)
 	party_button.pressed.connect(_on_party_pressed)
+	quest_button.pressed.connect(_on_quest_pressed)
 
 
 func get_movement_input() -> Vector2:
@@ -71,3 +73,9 @@ func _on_party_pressed() -> void:
 	var party_screens := get_tree().get_nodes_in_group("party_screen")
 	if party_screens.size() > 0 and party_screens[0].has_method("toggle"):
 		party_screens[0].toggle()
+
+
+func _on_quest_pressed() -> void:
+	var quest_screens := get_tree().get_nodes_in_group("quest_screen")
+	if quest_screens.size() > 0 and quest_screens[0].has_method("toggle"):
+		quest_screens[0].toggle()

@@ -107,6 +107,7 @@ func restart_game() -> void:
 	InventoryManager.reset()
 	GauntletManager.reset()
 	SkillManager.reset()
+	QuestManager.reset()
 
 	get_tree().reload_current_scene()
 
@@ -139,6 +140,7 @@ func save_game() -> void:
 		"inventory": InventoryManager.to_save_data(),
 		"gauntlet": GauntletManager.to_save_data(),
 		"skills": SkillManager.to_save_data(),
+		"quests": QuestManager.to_save_data(),
 	}
 
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)

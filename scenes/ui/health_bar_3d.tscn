@@ -8,3 +8,5 @@ script = ExtResource("1_script")
 [node name="Back" type="Sprite3D" parent="."]
 
 [node name="Fill" type="Sprite3D" parent="."]
+
+[node name="ElementDot" type="Sprite3D" parent="."]

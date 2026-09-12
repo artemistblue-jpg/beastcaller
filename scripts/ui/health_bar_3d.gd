@@ -14,6 +14,7 @@ extends Node3D
 
 @onready var back_sprite: Sprite3D = $Back
 @onready var fill_sprite: Sprite3D = $Fill
+@onready var element_dot: Sprite3D = $ElementDot
 
 var health: HealthComponent = null
 
@@ -32,9 +33,23 @@ func _ready() -> void:
 	fill_sprite.scale = Vector3(width, height * 0.75, 1.0)
 	fill_sprite.position.z = 0.001
 
+	# A small colored dot to the left of the bar showing this creature's
+	# element (see ElementSystem) — a quick "what am I fighting" tell
+	# without needing to open any menu. Only shown for things that
+	# actually have an element (get_element()), i.e. not the player.
+	_setup_sprite(element_dot, texture, Color.WHITE)
+	var dot_size: float = height * 1.6
+	element_dot.scale = Vector3(dot_size, dot_size, 1.0)
+	element_dot.position.x = -(width / 2.0) - dot_size
+	element_dot.position.z = 0.001
+	element_dot.visible = false
+
 	var owner_node := get_parent()
 	if owner_node != null and owner_node.has_node("HealthComponent"):
 		track(owner_node.get_node("HealthComponent"))
+	if owner_node != null and owner_node.has_method("get_element"):
+		element_dot.modulate = ElementSystem.get_element_color(owner_node.get_element())
+		element_dot.visible = true
 
 
 func _setup_sprite(sprite: Sprite3D, texture: Texture2D, color: Color) -> void:

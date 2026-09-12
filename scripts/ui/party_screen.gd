@@ -76,10 +76,15 @@ func _build_squad_row(index: int) -> Control:
 	swatch.color = Color(0.45, 0.45, 0.45) if is_fainted else Color(0.35, 0.75, 0.5)
 	row.add_child(swatch)
 
+	var element_name: String = ElementSystem.get_element_name(monster_data.get("element", 0))
+	var role_name: String = ElementSystem.get_role_name(monster_data.get("role", 0))
+
 	var label := Label.new()
 	var status_text: String = "Fainted" if is_fainted else "Active"
-	label.text = "%s — %s (%d HP)" % [
+	label.text = "%s (%s / %s) — %s (%d HP)" % [
 		String(monster_data.get("species_name", "Monster")),
+		element_name,
+		role_name,
 		status_text,
 		int(monster_data.get("max_health", 0)),
 	]

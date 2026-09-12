@@ -12,14 +12,20 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/inventory_screen.tscn" id="11_inventory"]
 [ext_resource type="PackedScene" path="res://scenes/ui/skill_screen.tscn" id="12_skills"]
 [ext_resource type="PackedScene" path="res://scenes/ui/party_screen.tscn" id="13_party"]
-[ext_resource type="Script" path="res://scripts/systems/chest_spawner.gd" id="14_chest_spawner"]
-[ext_resource type="PackedScene" path="res://scenes/world/chest.tscn" id="15_chest"]
-[ext_resource type="PackedScene" path="res://scenes/world/ore_node.tscn" id="16_ore"]
 [ext_resource type="PackedScene" path="res://scenes/world/tree_node.tscn" id="17_treenode"]
 [ext_resource type="PackedScene" path="res://scenes/world/shop_npc.tscn" id="18_shopnpc"]
 [ext_resource type="PackedScene" path="res://scenes/ui/shop_screen.tscn" id="19_shopscreen"]
 [ext_resource type="PackedScene" path="res://scenes/world/pond.tscn" id="20_pond"]
 [ext_resource type="PackedScene" path="res://scenes/world/fishing_spot.tscn" id="21_fishingspot"]
+[ext_resource type="PackedScene" path="res://scenes/ui/quest_screen.tscn" id="22_questscreen"]
+[ext_resource type="PackedScene" path="res://scenes/ui/death_screen.tscn" id="23_deathscreen"]
+[ext_resource type="PackedScene" path="res://scenes/ui/minimap.tscn" id="24_minimap"]
+[ext_resource type="PackedScene" path="res://scenes/ui/full_map_screen.tscn" id="25_fullmap"]
+[ext_resource type="PackedScene" path="res://scenes/world/herb_patch.tscn" id="26_herbpatch"]
+[ext_resource type="PackedScene" path="res://scenes/creatures/ember_fang.tscn" id="27_emberfang"]
+[ext_resource type="PackedScene" path="res://scenes/creatures/duskwyrm.tscn" id="28_duskwyrm"]
+[ext_resource type="PackedScene" path="res://scenes/creatures/tidewisp.tscn" id="29_tidewisp"]
+[ext_resource type="PackedScene" path="res://scenes/creatures/glowmoth.tscn" id="30_glowmoth"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_5emg7"]
 size = Vector3(240, 1, 240)
@@ -111,11 +117,11 @@ shadow_enabled = true
 environment = SubResource("Environment_bxnbg")
 
 [node name="PlayerSpawn" type="Marker3D" parent="." unique_id=824811966]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -100)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -100)
 groups=["player_spawn"]
 
 [node name="Player" parent="." unique_id=381432639 instance=ExtResource("1_pcytr")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -100)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -100)
 
 [node name="ShopNPC" parent="." instance=ExtResource("18_shopnpc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -95)
@@ -303,90 +309,48 @@ creature_scene = ExtResource("3_wild")
 [node name="HostileCreature4" type="Node3D" parent="Creatures"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 1.5, -70)
 script = ExtResource("9_spawner")
-creature_scene = ExtResource("2_hostile")
+creature_scene = ExtResource("27_emberfang")
 
 [node name="HostileCreature5" type="Node3D" parent="Creatures"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 1.5, -90)
 script = ExtResource("9_spawner")
-creature_scene = ExtResource("2_hostile")
+creature_scene = ExtResource("27_emberfang")
 
 [node name="HostileCreature6" type="Node3D" parent="Creatures"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 1.5, 60)
 script = ExtResource("9_spawner")
-creature_scene = ExtResource("2_hostile")
+creature_scene = ExtResource("28_duskwyrm")
 
 [node name="WildMonster5" type="Node3D" parent="Creatures"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -70, 1.2, 10)
 script = ExtResource("9_spawner")
-creature_scene = ExtResource("3_wild")
+creature_scene = ExtResource("29_tidewisp")
 
 [node name="WildMonster6" type="Node3D" parent="Creatures"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70, 1.2, -10)
 script = ExtResource("9_spawner")
-creature_scene = ExtResource("3_wild")
+creature_scene = ExtResource("29_tidewisp")
 
 [node name="WildMonster7" type="Node3D" parent="Creatures"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1.2, 90)
 script = ExtResource("9_spawner")
-creature_scene = ExtResource("3_wild")
+creature_scene = ExtResource("30_glowmoth")
 
 [node name="WildMonster8" type="Node3D" parent="Creatures"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 1.2, -90)
 script = ExtResource("9_spawner")
-creature_scene = ExtResource("3_wild")
-
-[node name="Chests" type="Node3D" parent="."]
-
-[node name="ChestSpot1" type="Node3D" parent="Chests"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 0.4, -30)
-script = ExtResource("14_chest_spawner")
-creature_scene = ExtResource("15_chest")
-
-[node name="ChestSpot2" type="Node3D" parent="Chests"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0.4, 70)
-script = ExtResource("14_chest_spawner")
-creature_scene = ExtResource("15_chest")
-
-[node name="ChestSpot3" type="Node3D" parent="Chests"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 80, 0.4, 70)
-script = ExtResource("14_chest_spawner")
-creature_scene = ExtResource("15_chest")
-
-[node name="ChestSpot4" type="Node3D" parent="Chests"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, 0.4, -10)
-script = ExtResource("14_chest_spawner")
-creature_scene = ExtResource("15_chest")
-
-[node name="ChestSpot5" type="Node3D" parent="Chests"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 40)
-script = ExtResource("14_chest_spawner")
-creature_scene = ExtResource("15_chest")
-
-[node name="ChestSpot6" type="Node3D" parent="Chests"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 0.4, -70)
-script = ExtResource("14_chest_spawner")
-creature_scene = ExtResource("15_chest")
-
-[node name="ChestSpot7" type="Node3D" parent="Chests"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 0.4, 80)
-script = ExtResource("14_chest_spawner")
-creature_scene = ExtResource("15_chest")
-
-[node name="ChestSpot8" type="Node3D" parent="Chests"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 0.4, -100)
-script = ExtResource("14_chest_spawner")
-creature_scene = ExtResource("15_chest")
+creature_scene = ExtResource("30_glowmoth")
 
 [node name="Gatherables" type="Node3D" parent="."]
 
-[node name="OreNode1" parent="Gatherables" instance=ExtResource("16_ore")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0.4, -70)
+[node name="HerbPatch1" parent="Gatherables" instance=ExtResource("26_herbpatch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0.4, 70)
 
-[node name="OreNode2" parent="Gatherables" instance=ExtResource("16_ore")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 0.4, 24)
+[node name="HerbPatch2" parent="Gatherables" instance=ExtResource("26_herbpatch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -56, 0.4, -24)
 
-[node name="OreNode3" parent="Gatherables" instance=ExtResource("16_ore")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 0.4, 16)
+[node name="HerbPatch3" parent="Gatherables" instance=ExtResource("26_herbpatch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 0.4, -16)
 
 [node name="TreeNode1" parent="Gatherables" instance=ExtResource("17_treenode")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1.0, 60)
@@ -397,14 +361,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 1.0, -96)
 [node name="TreeNode3" parent="Gatherables" instance=ExtResource("17_treenode")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 1.0, 40)
 
-[node name="OreNode4" parent="Gatherables" instance=ExtResource("16_ore")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -90, 0.4, -40)
+[node name="HerbPatch4" parent="Gatherables" instance=ExtResource("26_herbpatch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0.4, -70)
 
-[node name="OreNode5" parent="Gatherables" instance=ExtResource("16_ore")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 90, 0.4, 40)
+[node name="HerbPatch5" parent="Gatherables" instance=ExtResource("26_herbpatch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 0.4, 24)
 
-[node name="OreNode6" parent="Gatherables" instance=ExtResource("16_ore")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, -110)
+[node name="HerbPatch6" parent="Gatherables" instance=ExtResource("26_herbpatch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -64, 0.4, 16)
 
 [node name="TreeNode4" parent="Gatherables" instance=ExtResource("17_treenode")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 1.0, -20)
@@ -438,3 +402,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, -9)
 [node name="PartyScreen" parent="." instance=ExtResource("13_party")]
 
 [node name="ShopScreen" parent="." instance=ExtResource("19_shopscreen")]
+
+[node name="QuestScreen" parent="." instance=ExtResource("22_questscreen")]
+
+[node name="DeathScreen" parent="." instance=ExtResource("23_deathscreen")]
+
+[node name="Minimap" parent="." instance=ExtResource("24_minimap")]
+
+[node name="FullMapScreen" parent="." instance=ExtResource("25_fullmap")]

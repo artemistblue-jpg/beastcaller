@@ -87,6 +87,36 @@ const ITEMS: Dictionary = {
 		"color": Color(0.85, 0.6, 0.3),
 		"heal_amount": 50.0,
 	},
+	"beast_fang": {
+		"name": "Beast Fang",
+		"description": "Torn from a Feral Stalker. Too tough for ordinary crafting — used in its own recipes.",
+		"type": ItemType.MATERIAL,
+		"stack_max": 50,
+		"color": Color(0.75, 0.2, 0.2),
+	},
+	"spark_shard": {
+		"name": "Spark Shard",
+		"description": "A crackling fragment left behind by a Sparkit. Used in its own recipes.",
+		"type": ItemType.MATERIAL,
+		"stack_max": 50,
+		"color": Color(0.9, 0.85, 0.25),
+	},
+	"beast_tonic": {
+		"name": "Beast Tonic",
+		"description": "A potent brew steeped with a Beast Fang. Restores 70 HP when used — Crafted only.",
+		"type": ItemType.CONSUMABLE,
+		"stack_max": 20,
+		"color": Color(0.8, 0.3, 0.25),
+		"heal_amount": 70.0,
+	},
+	"charged_cell": {
+		"name": "Charged Cell",
+		"description": "A Battery Cell rebuilt around a Spark Shard's crackle. Recharges 70 energy into your capture gauntlet when used — Crafted only.",
+		"type": ItemType.GAUNTLET,
+		"stack_max": 20,
+		"color": Color(0.9, 0.75, 0.2),
+		"energy_amount": 70.0,
+	},
 }
 
 ## item_id -> {"result_qty": int, "materials": {material_id: qty, ...}}
@@ -95,6 +125,8 @@ const RECIPES: Dictionary = {
 	"battery_cell": {"result_qty": 1, "materials": {"scrap_metal": 2}},
 	"gauntlet_core_ii": {"result_qty": 1, "materials": {"scrap_metal": 5, "herb": 3}},
 	"fish_stew": {"result_qty": 1, "materials": {"fish": 2, "herb": 1}},
+	"beast_tonic": {"result_qty": 1, "materials": {"beast_fang": 1, "herb": 2}},
+	"charged_cell": {"result_qty": 1, "materials": {"spark_shard": 1, "scrap_metal": 2}},
 }
 
 ## item_id -> Monster Essence cost for buying one unit from the NPC

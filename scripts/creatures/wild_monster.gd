@@ -6,6 +6,14 @@ extends CharacterBody3D
 ## turns hostile, fighting back harder for a while before calming down.
 
 @export var species_name: String = "Sparkit"
+
+## Elemental type + combat role — see element_system.gd (the
+## "ElementSystem" autoload) for what each one does. Same int-based
+## export as creature_ai.gd's identical fields; keep this list in the
+## exact same order as ElementSystem's Element/Role enums.
+@export_enum("Neutral", "Fire", "Water", "Earth", "Wind", "Dark", "Light") var element: int = 0
+@export_enum("Attacker", "Tank", "Healer", "Mage") var role: int = 0
+
 @export var move_speed: float = 2.0
 @export var acceleration: float = 6.0
 @export var wander_radius: float = 6.0
@@ -63,8 +71,27 @@ var enrage_timer: float = 0.0
 var attack_timer: float = 0.0
 var target: Node3D = null
 
+## Cached pre-role-multiplier base stats — see creature_ai.gd's identical
+## fields for why _apply_role_stats() always scales from these rather
+## than from whatever move_speed/attack_damage/attack_range currently is.
+var _base_max_health: float = 0.0
+var _base_attack_damage: float = 0.0
+var _base_move_speed: float = 0.0
+var _base_attack_range: float = 0.0
+
+## Healer role only: a wild monster has no squad to support, so instead
+## it slowly mends itself while calm — see _try_self_heal().
+var _heal_timer: float = 0.0
+
 
 func _ready() -> void:
+	_base_max_health = health.max_health
+	_base_attack_damage = attack_damage
+	_base_move_speed = move_speed
+	_base_attack_range = attack_range
+	_apply_role_stats()
+	_apply_mage_range_boost()
+
 	add_to_group("wild_monster")
 	add_to_group("tameable")
 	# Also join "hostile" — not because these are aggressive, but because
@@ -88,6 +115,60 @@ func _ready() -> void:
 func _on_health_changed(current: float, max_health: float) -> void:
 	if not is_tameable and current <= max_health * tame_health_fraction:
 		is_tameable = true
+
+
+## Recomputes move_speed/attack_damage/attack_range/max_health from the
+## cached base stats plus the current role's multipliers — see
+## ElementSystem.ROLE_STAT_MULTIPLIERS. Unlike creature_ai.gd's version,
+## this always rescales max_health too: a wild_monster is never
+## reconfigured with already-role-scaled data after the fact (a tamed
+## one becomes a creature_ai.gd-based summon instead, not a
+## reconfigured wild_monster), so there's no double-apply risk here.
+func _apply_role_stats() -> void:
+	var mult: Dictionary = ElementSystem.ROLE_STAT_MULTIPLIERS.get(role, {})
+	move_speed = _base_move_speed * float(mult.get("move_speed", 1.0))
+	attack_damage = _base_attack_damage * float(mult.get("attack_damage", 1.0))
+	attack_range = _base_attack_range
+	if role == ElementSystem.Role.MAGE:
+		attack_range *= ElementSystem.MAGE_RANGE_MULTIPLIER
+
+	if health:
+		var new_max: float = _base_max_health * float(mult.get("max_health", 1.0))
+		health.max_health = new_max
+		health.current_health = new_max
+
+
+## Same shared-resource caveat as creature_ai.gd's identical function:
+## grows the AttackArea3D's actual hit-sphere to match a Mage's bigger
+## attack_range, on a duplicated shape so other instances of this same
+## scene aren't affected.
+func _apply_mage_range_boost() -> void:
+	if role != ElementSystem.Role.MAGE:
+		return
+	var shape_node: CollisionShape3D = attack_area.get_node_or_null("CollisionShape3D")
+	if shape_node == null or shape_node.shape == null:
+		return
+	var boosted_shape: Shape3D = shape_node.shape.duplicate()
+	if boosted_shape is SphereShape3D:
+		(boosted_shape as SphereShape3D).radius *= ElementSystem.MAGE_RANGE_MULTIPLIER
+	shape_node.shape = boosted_shape
+
+
+func get_element() -> int:
+	return element
+
+
+func get_role() -> int:
+	return role
+
+
+## Healer role only, ticked from _physics_process() while not enraged —
+## a wild monster fights back only when provoked, so this is its
+## "at rest" behavior rather than something that competes with combat.
+func _try_self_heal() -> void:
+	if health.is_dead() or health.current_health >= health.max_health:
+		return
+	health.heal(ElementSystem.HEALER_SELF_HEAL_AMOUNT)
 
 
 func take_damage(amount: float) -> void:
@@ -129,6 +210,8 @@ func _capture() -> Dictionary:
 	var data := {
 		"species_name": species_name,
 		"max_health": health.max_health,
+		"element": element,
+		"role": role,
 	}
 	_remove_and_reward()
 	return data
@@ -179,6 +262,11 @@ func _physics_process(delta: float) -> void:
 		_process_enraged(delta)
 	else:
 		_process_wander(delta)
+		if role == ElementSystem.Role.HEALER:
+			_heal_timer -= delta
+			if _heal_timer <= 0.0:
+				_heal_timer = ElementSystem.HEALER_HEAL_INTERVAL
+				_try_self_heal()
 
 	move_and_slide()
 
@@ -231,7 +319,11 @@ func _try_attack() -> void:
 
 	for body in attack_area.get_overlapping_bodies():
 		if body.is_in_group("player_side") and body.has_method("take_damage"):
-			body.take_damage(attack_damage * enrage_damage_multiplier)
+			var defender_element: int = ElementSystem.Element.NEUTRAL
+			if body.has_method("get_element"):
+				defender_element = body.get_element()
+			var multiplier: float = ElementSystem.get_damage_multiplier(element, defender_element)
+			body.take_damage(attack_damage * enrage_damage_multiplier * multiplier)
 
 
 func _process_wander(delta: float) -> void:

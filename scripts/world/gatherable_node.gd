@@ -1,9 +1,10 @@
 extends StaticBody3D
 
-## An ore vein or tree that can be chopped/mined for a material, then
-## goes on cooldown and reappears — the mining/woodcutting counterpart
-## to chest.gd, but paid out immediately (no ad) since these are meant
-## to be a repeatable trickle rather than the chest's jackpot moment.
+## A rock, tree, or herb patch that can be mined/chopped/foraged for a
+## material, then goes on cooldown and reappears — the mining/
+## woodcutting/foraging counterpart to chest.gd, but paid out
+## immediately (no ad) since these are meant to be a repeatable trickle
+## rather than the chest's jackpot moment.
 ##
 ## Depleted/respawn state is deliberately NOT persisted via SaveManager
 ## (unlike CreatureSpawner) — reloading the scene (e.g. via the Restart
@@ -60,5 +61,7 @@ func _get_skill_bonus() -> int:
 			return SkillManager.get_mining_bonus_yield()
 		"woodcutting":
 			return SkillManager.get_woodcutting_bonus_yield()
+		"foraging":
+			return SkillManager.get_foraging_bonus_yield()
 		_:
 			return 0

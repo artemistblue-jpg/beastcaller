@@ -9,9 +9,11 @@ extends Node
 ##
 ## Every skill has a live effect now (see get_taming_bonus()/
 ## get_crafting_bonus_yield()/get_mining_bonus_yield()/
-## get_woodcutting_bonus_yield()/get_fishing_catch_chance()) — mining
-## and woodcutting pay out at the ore/tree nodes, fishing at fishing
-## spots (see gatherable_node.gd/fishing_spot.gd).
+## get_woodcutting_bonus_yield()/get_foraging_bonus_yield()/
+## get_fishing_catch_chance()) — mining, woodcutting, and foraging all
+## pay out at their respective gatherable nodes (rocks, trees, herb
+## patches), fishing at fishing spots (see gatherable_node.gd/
+## fishing_spot.gd).
 
 signal essence_changed
 signal skill_changed(skill_id: String)
@@ -32,6 +34,10 @@ const SKILLS: Dictionary = {
 	"woodcutting": {
 		"name": "Woodcutting",
 		"description": "+1 bonus wood per 10 levels when gathering from a tree node.",
+	},
+	"foraging": {
+		"name": "Foraging",
+		"description": "+1 bonus herb per 10 levels when gathering from a wild herb patch.",
 	},
 	"fishing": {
 		"name": "Fishing",
@@ -112,6 +118,11 @@ func get_mining_bonus_yield() -> int:
 ## Extra wood per gather — see gatherable_node.gd.
 func get_woodcutting_bonus_yield() -> int:
 	return get_skill_level("woodcutting") / 10
+
+
+## Extra herb per gather — see gatherable_node.gd.
+func get_foraging_bonus_yield() -> int:
+	return get_skill_level("foraging") / 10
 
 
 ## Flat additive bonus applied on top of a fishing spot's base catch

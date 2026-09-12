@@ -203,9 +203,24 @@ func _on_died() -> void:
 	# about, then hand control back on respawn.
 	animation_tree.active = false
 	animation_player.play("Death01")
-	# TODO: swap this for a real game-over screen once we build one —
-	# for now, just respawn after a short delay so you're never stuck.
-	print("Player died. Respawning in %.1fs..." % respawn_delay)
+	print("Player died.")
+	_show_death_screen()
+
+
+## Dying now has a real cost instead of a free timed respawn — see
+## death_screen.gd for the actual pay-essence-or-watch-an-ad choice.
+## _respawn is handed over as the callback it runs the instant either
+## path pays off, so this file doesn't need to know which one the
+## player picked.
+func _show_death_screen() -> void:
+	var death_screens := get_tree().get_nodes_in_group("death_screen")
+	if death_screens.size() > 0 and death_screens[0].has_method("show_death"):
+		death_screens[0].show_death(_respawn)
+		return
+
+	# No death screen present in this scene (shouldn't normally happen)
+	# — fall back to the old free timed respawn rather than leaving the
+	# player stuck forever with no way back in.
 	await get_tree().create_timer(respawn_delay).timeout
 	_respawn()
 

@@ -31,6 +31,7 @@ func _apply_save_data() -> void:
 	_apply_inventory_data(data.get("inventory", {}))
 	_apply_gauntlet_data(data.get("gauntlet", {}))
 	_apply_skill_data(data.get("skills", {}))
+	_apply_quest_data(data.get("quests", {}))
 
 
 ## A brand-new save (or an old save from before the inventory system
@@ -86,6 +87,15 @@ func _apply_skill_data(skill_data: Dictionary) -> void:
 	if skill_data.is_empty():
 		return
 	SkillManager.load_save_data(skill_data)
+
+
+## Same reasoning again — QuestManager already seeds a brand-new save's
+## starter quests itself (see quest_manager.gd's _ready()), so this only
+## needs to act when there's real saved quest progress to restore.
+func _apply_quest_data(quest_data: Dictionary) -> void:
+	if quest_data.is_empty():
+		return
+	QuestManager.load_save_data(quest_data)
 
 
 func _apply_player_data(player: Node3D, player_data: Dictionary) -> void:

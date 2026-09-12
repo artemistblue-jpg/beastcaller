@@ -1,44 +1,48 @@
 [gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://scripts/creatures/creature_ai.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/creatures/wild_monster.gd" id="1_script"]
 [ext_resource type="Script" path="res://scripts/systems/health_component.gd" id="2_health"]
 [ext_resource type="PackedScene" path="res://scenes/ui/health_bar_3d.tscn" id="3_healthbar"]
-[ext_resource type="PackedScene" path="res://characters/monsters/goleling.glb" id="4_model"]
+[ext_resource type="PackedScene" path="res://characters/monsters/glub.glb" id="4_model"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
-radius = 0.4
-height = 1.8
+radius = 0.32
+height = 1.1
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_attack"]
-radius = 1.6
+radius = 1.2
 
-[node name="HostileCreature" type="CharacterBody3D"]
+[node name="Tidewisp" type="CharacterBody3D"]
 script = ExtResource("1_script")
-self_group = &"hostile"
-target_group = &"player_side"
-species_name = "Feral Stalker"
-element = 3
-role = 1
-can_be_tamed = true
-tame_health_fraction = 0.25
-base_capture_chance = 0.3
-loot_item_id = "beast_fang"
-loot_chance = 0.35
-loot_min = 1
-loot_max = 1
+species_name = "Tidewisp"
+element = 2
+role = 2
+move_speed = 1.8
+wander_radius = 6.0
+tame_health_fraction = 0.3
+base_capture_chance = 0.75
+detection_range = 13.0
+attack_range = 1.5
+attack_damage = 6.0
+attack_cooldown = 1.2
+enrage_duration = 12.0
+enrage_speed_multiplier = 1.3
+enrage_damage_multiplier = 1.4
+essence_min = 3
+essence_max = 8
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
 shape = SubResource("CapsuleShape3D_body")
 
 [node name="CreatureModel" parent="." instance=ExtResource("4_model")]
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("2_health")
-max_health = 60.0
+max_health = 25.0
 
 [node name="AttackArea3D" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
 collision_layer = 0
 collision_mask = 1
 
@@ -46,6 +50,7 @@ collision_mask = 1
 shape = SubResource("SphereShape3D_attack")
 
 [node name="HealthBar" parent="." instance=ExtResource("3_healthbar")]
-height_offset = 2.1
+width = 0.8
+height_offset = 1.3
 
 [editable path="CreatureModel"]

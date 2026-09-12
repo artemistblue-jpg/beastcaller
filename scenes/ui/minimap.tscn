@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/minimap.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/ui/map_view.gd" id="2_mapview"]
+
+[node name="Minimap" type="CanvasLayer"]
+layer = 6
+script = ExtResource("1_script")
+
+[node name="Root" type="Control" parent="."]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -160.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 160.0
+
+[node name="MapButton" type="Button" parent="Root"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+focus_mode = 0
+flat = true
+
+[node name="MapView" type="Control" parent="Root/MapButton"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("2_mapview")

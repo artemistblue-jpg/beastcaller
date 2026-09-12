@@ -12,6 +12,15 @@ extends CharacterBody3D
 @export var attack_cooldown: float = 1.2
 @export var species_name: String = "Monster"
 
+## Elemental type + combat role — see element_system.gd (the "ElementSystem"
+## autoload) for what each one actually does. Stored as plain ints rather
+## than ElementSystem's own enum types so this export dropdown doesn't
+## need to reference another autoload's script at parse time; the string
+## lists below must stay in the exact same order as ElementSystem's
+## Element/Role enums.
+@export_enum("Neutral", "Fire", "Water", "Earth", "Wind", "Dark", "Light") var element: int = 0
+@export_enum("Attacker", "Tank", "Healer", "Mage") var role: int = 0
+
 ## Group this creature belongs to (who it counts as, for others targeting it).
 @export var self_group: StringName = &"hostile"
 ## Group this creature looks for targets in.
@@ -77,8 +86,29 @@ var is_tameable: bool = false
 var is_enraged: bool = false
 var enrage_timer: float = 0.0
 
+## The scene's own tuned numbers, captured before any role multiplier is
+## applied, so _apply_role_stats() always scales from the same starting
+## point instead of compounding if it's called more than once (see
+## configure(), which re-applies it once element/role arrive from
+## captured save data).
+var _base_max_health: float = 0.0
+var _base_attack_damage: float = 0.0
+var _base_move_speed: float = 0.0
+var _base_attack_range: float = 0.0
+var _mage_range_applied: bool = false
+
+## Healer role only — see _try_heal_ally().
+var _heal_timer: float = 0.0
+
 
 func _ready() -> void:
+	_base_max_health = health.max_health
+	_base_attack_damage = attack_damage
+	_base_move_speed = move_speed
+	_base_attack_range = attack_range
+	_apply_role_stats(true)
+	_apply_mage_range_boost()
+
 	add_to_group(self_group)
 	health.died.connect(_on_died)
 	if can_be_tamed:
@@ -86,11 +116,70 @@ func _ready() -> void:
 		health.health_changed.connect(_on_health_changed)
 
 
+## Recomputes move_speed/attack_damage/attack_range from the cached base
+## stats plus the current role's multipliers (see
+## ElementSystem.ROLE_STAT_MULTIPLIERS). max_health is only rescaled from
+## the base when scale_health is true — configure() passes false because
+## a tamed monster's captured max_health has already had its role
+## multiplier baked in back when it was still a wild/hostile creature,
+## so re-scaling it here again would double-apply it.
+func _apply_role_stats(scale_health: bool) -> void:
+	var mult: Dictionary = ElementSystem.ROLE_STAT_MULTIPLIERS.get(role, {})
+	move_speed = _base_move_speed * float(mult.get("move_speed", 1.0))
+	attack_damage = _base_attack_damage * float(mult.get("attack_damage", 1.0))
+	attack_range = _base_attack_range
+	if role == ElementSystem.Role.MAGE:
+		attack_range *= ElementSystem.MAGE_RANGE_MULTIPLIER
+
+	if scale_health and health:
+		var new_max: float = _base_max_health * float(mult.get("max_health", 1.0))
+		health.max_health = new_max
+		health.current_health = new_max
+		health.health_changed.emit(health.current_health, health.max_health)
+
+
+## A Mage's bigger attack_range (see _apply_role_stats()) only changes
+## when the AI decides to stop chasing and swing — the actual hit
+## detection is a separate physical AttackArea3D collision shape, which
+## needs its own radius grown to match or a mage would stop at range and
+## then whiff every attack. Sub-resources in a .tscn are shared across
+## every instance of that scene, so this duplicates the shape before
+## mutating it rather than resizing the shared original. Guarded by
+## _mage_range_applied so calling this again later (configure() calls it
+## once more after a tamed monster's real role arrives) never
+## double-boosts an already-boosted shape.
+func _apply_mage_range_boost() -> void:
+	if role != ElementSystem.Role.MAGE or _mage_range_applied:
+		return
+	var shape_node: CollisionShape3D = attack_area.get_node_or_null("CollisionShape3D")
+	if shape_node == null or shape_node.shape == null:
+		return
+	var boosted_shape: Shape3D = shape_node.shape.duplicate()
+	if boosted_shape is SphereShape3D:
+		(boosted_shape as SphereShape3D).radius *= ElementSystem.MAGE_RANGE_MULTIPLIER
+	shape_node.shape = boosted_shape
+	_mage_range_applied = true
+
+
+func get_element() -> int:
+	return element
+
+
+func get_role() -> int:
+	return role
+
+
 func configure(data: Dictionary, new_owner: Node3D = null, index: int = -1) -> void:
 	owner_to_follow = new_owner
 	squad_index = index
 	if data.has("species_name"):
 		species_name = data["species_name"]
+	if data.has("element"):
+		element = data["element"]
+	if data.has("role"):
+		role = data["role"]
+	_apply_role_stats(false)
+	_apply_mage_range_boost()
 	if health and data.has("max_health"):
 		health.max_health = data["max_health"]
 		health.current_health = health.max_health
@@ -139,6 +228,8 @@ func _capture() -> Dictionary:
 	var data := {
 		"species_name": species_name,
 		"max_health": health.max_health,
+		"element": element,
+		"role": role,
 	}
 	_drop_loot_if_world_creature()
 	_award_essence_if_world_creature()
@@ -158,6 +249,12 @@ func _physics_process(delta: float) -> void:
 
 	attack_timer = max(attack_timer - delta, 0.0)
 	retarget_timer = max(retarget_timer - delta, 0.0)
+
+	if role == ElementSystem.Role.HEALER:
+		_heal_timer -= delta
+		if _heal_timer <= 0.0:
+			_heal_timer = ElementSystem.HEALER_HEAL_INTERVAL
+			_try_heal_ally()
 
 	if is_enraged:
 		enrage_timer -= delta
@@ -242,7 +339,45 @@ func _try_attack() -> void:
 
 	for body in attack_area.get_overlapping_bodies():
 		if body.is_in_group(target_group) and body.has_method("take_damage"):
-			body.take_damage(damage)
+			var defender_element: int = ElementSystem.Element.NEUTRAL
+			if body.has_method("get_element"):
+				defender_element = body.get_element()
+			var multiplier: float = ElementSystem.get_damage_multiplier(element, defender_element)
+			body.take_damage(damage * multiplier)
+
+
+## Healer role only, ticked from _physics_process(). Mends whichever
+## wounded member of self_group is closest to death, within
+## HEALER_HEAL_RADIUS — this naturally covers a hostile healer supporting
+## other hostile creatures/wild monsters (all in group "hostile"), and a
+## player-side healer supporting the player or a squadmate (all in group
+## "player_side", the player included — see player.gd's _ready()). Heals
+## itself if it's the most wounded ally-shaped thing around, but only
+## because it's a member of its own group like anyone else, not as a
+## special case.
+func _try_heal_ally() -> void:
+	var best: Node = null
+	var best_fraction: float = 1.0
+
+	for candidate in get_tree().get_nodes_in_group(self_group):
+		if not is_instance_valid(candidate) or not ("health" in candidate):
+			continue
+		var hc: HealthComponent = candidate.health
+		if hc == null or hc.is_dead():
+			continue
+		var fraction: float = 1.0
+		if hc.max_health > 0.0:
+			fraction = hc.current_health / hc.max_health
+		if fraction >= 1.0:
+			continue
+		if global_position.distance_to(candidate.global_position) > ElementSystem.HEALER_HEAL_RADIUS:
+			continue
+		if best == null or fraction < best_fraction:
+			best = candidate
+			best_fraction = fraction
+
+	if best != null:
+		best.health.heal(ElementSystem.HEALER_HEAL_AMOUNT)
 
 
 func _on_died() -> void:
