@@ -35,7 +35,7 @@ shape = SubResource("CapsuleShape3D_body")
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("2_health")
-max_health = 60.0
+max_health = 96.0
 
 [node name="AttackArea3D" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
