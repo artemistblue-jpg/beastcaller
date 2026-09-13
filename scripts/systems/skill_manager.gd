@@ -61,6 +61,9 @@ func add_essence(amount: int) -> void:
 		return
 	essence += amount
 	essence_changed.emit()
+	TutorialManager.show_tip(
+		"essence", "You earned Monster Essence! Spend it on the skill sphere (SKILL) to grow stronger, or at the shop."
+	)
 
 
 func get_skill_level(skill_id: String) -> int:

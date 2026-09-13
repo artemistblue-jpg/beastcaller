@@ -16,6 +16,15 @@ extends CanvasLayer
 @onready var restart_confirm: ConfirmationDialog = $RestartConfirm
 @onready var notification_label: Label = $NotificationLabel
 @onready var notification_timer: Timer = $NotificationTimer
+@onready var tutorial_tip_panel: PanelContainer = $TutorialTipPanel
+@onready var tutorial_tip_label: Label = $TutorialTipPanel/TutorialTipLabel
+@onready var tutorial_tip_timer: Timer = $TutorialTipTimer
+
+## Tips waiting to be shown — a separate queue rather than the "restart
+## the timer" behavior show_notification() uses below, since a tutorial
+## tip is meant to actually be read, not silently overwritten a moment
+## after showing up. See _on_tutorial_tip()/_show_next_tutorial_tip().
+var _tutorial_tip_queue: Array[String] = []
 
 
 func _ready() -> void:
@@ -33,6 +42,9 @@ func _ready() -> void:
 
 	InventoryManager.item_obtained.connect(_on_item_obtained)
 	notification_timer.timeout.connect(_on_notification_timeout)
+
+	TutorialManager.tip_ready.connect(_on_tutorial_tip)
+	tutorial_tip_timer.timeout.connect(_on_tutorial_tip_timeout)
 
 	call_deferred("_find_player")
 
@@ -61,6 +73,29 @@ func show_notification(text: String, color: Color = Color(1, 1, 1, 1), duration:
 
 func _on_notification_timeout() -> void:
 	notification_label.visible = false
+
+
+## Queues a tutorial tip rather than showing it immediately, in case one
+## is already on screen — see TutorialManager for how each tip id only
+## ever reaches this once per save. Separate node/timer from
+## show_notification() above so a tutorial tip and an item-pickup popup
+## never fight over the same label.
+func _on_tutorial_tip(text: String) -> void:
+	_tutorial_tip_queue.append(text)
+	_show_next_tutorial_tip()
+
+
+func _show_next_tutorial_tip() -> void:
+	if tutorial_tip_panel.visible or _tutorial_tip_queue.is_empty():
+		return
+	tutorial_tip_label.text = _tutorial_tip_queue.pop_front()
+	tutorial_tip_panel.visible = true
+	tutorial_tip_timer.start()
+
+
+func _on_tutorial_tip_timeout() -> void:
+	tutorial_tip_panel.visible = false
+	_show_next_tutorial_tip()
 
 
 ## Confirm-then-restart rather than acting on the first tap — this

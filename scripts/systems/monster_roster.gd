@@ -102,6 +102,10 @@ func add_to_collection(monster_data: Dictionary) -> void:
 	if active_squad.size() < SQUAD_LIMIT:
 		active_squad.append(monster_data)
 	roster_changed.emit()
+	TutorialManager.show_tip(
+		"squad",
+		"Tamed monsters join your squad and follow you! Check PARTY to manage them, or RELEASE to send them off to fight on their own."
+	)
 
 
 func _find_species_index(list: Array[Dictionary], species: String) -> int:

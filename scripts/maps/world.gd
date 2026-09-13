@@ -41,6 +41,7 @@ func _apply_save_data() -> void:
 	_apply_skill_data(data.get("skills", {}))
 	_apply_quest_data(data.get("quests", {}))
 	_apply_placed_decorations(data.get("placed_decorations", []))
+	_apply_tutorial_data(data.get("tutorial", {}))
 
 
 ## A brand-new save (or an old save from before the inventory system
@@ -64,6 +65,13 @@ func _seed_starting_inventory() -> void:
 ## flavor text. That needs a real trigger (a boss fight, a quest
 ## milestone) to hang off of, which doesn't exist yet — wire it up once
 ## the main questline/boss system is built rather than faking it here.
+## Passes TutorialManager's very first tip (movement) as an on_finished
+## callback, so it lands the moment the player actually gets control
+## instead of racing the dialogue box for the screen — every other tip
+## (taming, gathering, the shop, etc.) fires on its own later, the first
+## time that mechanic is actually relevant (see player.gd's
+## _update_tutorial_triggers() and the hooks in inventory_manager.gd,
+## skill_manager.gd, and monster_roster.gd).
 func _play_intro_dialogue() -> void:
 	DialogueBox.say([
 		"Your eyes open. Trees. Sky. Silence. You don't know this place — and worse, you don't know yourself.",
@@ -71,7 +79,9 @@ func _play_intro_dialogue() -> void:
 		{"speaker": "???", "text": "I was a god, once. The Demon Lord saw to the \"was.\""},
 		{"speaker": "???", "text": "You've been summoned here with the last of what I have left. And you are not the only one."},
 		{"speaker": "???", "text": "The creatures tearing this world apart were mine to hold back. Without me, they run wild — and worse things are stirring behind them."},
-	])
+	], func():
+		TutorialManager.show_tip("movement", "Drag the joystick to move, and tap JUMP to get over obstacles.")
+	)
 
 
 func _apply_inventory_data(inventory_data: Dictionary) -> void:
@@ -201,6 +211,20 @@ func get_placed_decorations_data() -> Array:
 			"rotation_y": child_3d.rotation.y,
 		})
 	return result
+
+
+## Empty tutorial_data covers two different cases the same way a brand
+## new save covers _seed_starting_inventory(): a genuinely new game (no
+## tips seen yet — fine, they'll show up naturally as things come up) and
+## an old save from before TutorialManager existed (which needs the
+## backfill so an already-experienced player isn't treated like day one —
+## see migrate_existing_progress()'s own comment for why that's safe to
+## call unconditionally here either way).
+func _apply_tutorial_data(tutorial_data: Dictionary) -> void:
+	if tutorial_data.is_empty():
+		TutorialManager.migrate_existing_progress()
+		return
+	TutorialManager.load_save_data(tutorial_data)
 
 
 func _apply_placed_decorations(entries: Array) -> void:

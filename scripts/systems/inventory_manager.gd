@@ -27,6 +27,13 @@ func add_item(item_id: String, amount: int = 1) -> void:
 	var gained: int = new_amount - current
 	if gained > 0:
 		item_obtained.emit(item_id, gained)
+		TutorialManager.show_tip(
+			"inventory", "Items you pick up go straight to your Inventory — tap BAG to see what you're holding."
+		)
+		if ItemDatabase.get_type(item_id) == ItemDatabase.ItemType.MATERIAL:
+			TutorialManager.show_tip(
+				"crafting", "Materials like this are used to craft gear — check the Craft tab in your Inventory."
+			)
 
 
 ## Returns false (and changes nothing) if there isn't enough of the item

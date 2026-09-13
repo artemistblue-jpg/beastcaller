@@ -88,3 +88,25 @@ visible = false
 [node name="NotificationTimer" type="Timer" parent="."]
 wait_time = 1.2
 one_shot = true
+
+[node name="TutorialTipPanel" type="PanelContainer" parent="."]
+visible = false
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -220.0
+offset_right = 220.0
+offset_top = 56.0
+offset_bottom = 120.0
+
+[node name="TutorialTipLabel" type="Label" parent="TutorialTipPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.92, 0.7, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+text = ""
+
+[node name="TutorialTipTimer" type="Timer" parent="."]
+wait_time = 4.5
+one_shot = true

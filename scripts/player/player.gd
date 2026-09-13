@@ -34,6 +34,12 @@ var jump_requested: bool = false
 var touch_controls: Node = null
 var invulnerable_timer: float = 0.0
 
+## Tracks whichever shop NPC currently has its "Press E" prompt showing
+## (see _update_interact_prompts()), so it can be told to hide again the
+## moment the player walks out of range or a different one becomes
+## nearest — null when nobody's prompt is up.
+var _nearby_shop_npc: Node3D = null
+
 ## Bone NAMES (not full paths) a punch is allowed to override. Everything
 ## NOT listed here (hips, legs, feet) keeps following the locomotion
 ## animation underneath, which is what lets the character punch and keep
@@ -394,6 +400,75 @@ func _try_open_shop() -> bool:
 	return true
 
 
+## Runs every physics frame (unlike the _try_* functions above, which only
+## fire on an actual interact press) so a "Press E" prompt lights up above
+## a shop NPC the moment it's in tame_range and turns off the moment it
+## isn't — same distance math as _try_open_shop(), just evaluated
+## continuously instead of once per press. Purely visual: doesn't call
+## interact() itself, so it can't mask whether interacting actually works.
+func _update_interact_prompts() -> void:
+	var nearest: Node3D = null
+	var nearest_distance: float = tame_range
+
+	if not is_dead and not DialogueBox.is_active():
+		for candidate in get_tree().get_nodes_in_group("shop_npc"):
+			if not (candidate is Node3D):
+				continue
+			var distance: float = global_position.distance_to(candidate.global_position)
+			if distance <= nearest_distance:
+				nearest = candidate
+				nearest_distance = distance
+
+	if nearest == _nearby_shop_npc:
+		return
+
+	if _nearby_shop_npc != null and is_instance_valid(_nearby_shop_npc) and _nearby_shop_npc.has_method("hide_prompt"):
+		_nearby_shop_npc.hide_prompt()
+
+	_nearby_shop_npc = nearest
+
+	if _nearby_shop_npc != null and _nearby_shop_npc.has_method("show_prompt"):
+		_nearby_shop_npc.show_prompt()
+
+
+## One-time contextual tutorial nudges (see TutorialManager) — checked
+## every physics frame, same as _update_interact_prompts() above, so each
+## tip fires the instant its mechanic is actually relevant instead of
+## needing a dedicated trigger wired into every system separately.
+## show_tip() itself is the one-time guard (a no-op after the first call
+## for a given id), so it's safe to call every single frame here.
+func _update_tutorial_triggers() -> void:
+	if is_dead or DialogueBox.is_active():
+		return
+
+	if _has_nearby_in_group("tameable", tame_range):
+		TutorialManager.show_tip(
+			"taming", "A wild monster is nearby! Get close and tap TAME to try to catch it."
+		)
+
+	if _has_nearby_in_group("gatherable", tame_range):
+		TutorialManager.show_tip(
+			"gathering", "Tap ATK near a rock or tree to gather materials from it."
+		)
+
+	if _has_nearby_in_group("chest", tame_range):
+		TutorialManager.show_tip(
+			"chests", "There's a chest nearby! Interact with it to open it — watching a short ad unlocks what's inside."
+		)
+
+	if _has_nearby_in_group("shop_npc", tame_range):
+		TutorialManager.show_tip(
+			"shop", "This merchant sells items for Monster Essence. Get close and interact to browse their wares."
+		)
+
+
+func _has_nearby_in_group(group: String, max_range: float) -> bool:
+	for candidate in get_tree().get_nodes_in_group(group):
+		if candidate is Node3D and global_position.distance_to(candidate.global_position) <= max_range:
+			return true
+	return false
+
+
 func _try_tame() -> void:
 	if is_dead or DialogueBox.is_active():
 		return
@@ -493,6 +568,8 @@ func _set_locomotion(moving: bool) -> void:
 func _physics_process(delta: float) -> void:
 	attack_timer = max(attack_timer - delta, 0.0)
 	invulnerable_timer = max(invulnerable_timer - delta, 0.0)
+	_update_interact_prompts()
+	_update_tutorial_triggers()
 
 	# Gradually crossfade Idle <-> Jog_Fwd toward whatever _set_locomotion
 	# last requested, rather than snapping instantly — see _setup_animation_tree().

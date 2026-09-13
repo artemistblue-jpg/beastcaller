@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/death_screen.tscn" id="23_deathscreen"]
 [ext_resource type="PackedScene" path="res://scenes/ui/minimap.tscn" id="24_minimap"]
 [ext_resource type="PackedScene" path="res://scenes/ui/full_map_screen.tscn" id="25_fullmap"]
+[ext_resource type="PackedScene" path="res://scenes/ui/help_screen.tscn" id="45_helpscreen"]
 [ext_resource type="PackedScene" path="res://scenes/world/herb_patch.tscn" id="26_herbpatch"]
 [ext_resource type="PackedScene" path="res://scenes/creatures/ember_fang.tscn" id="27_emberfang"]
 [ext_resource type="PackedScene" path="res://scenes/creatures/duskwyrm.tscn" id="28_duskwyrm"]
@@ -519,3 +520,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, -9)
 [node name="Minimap" parent="." instance=ExtResource("24_minimap")]
 
 [node name="FullMapScreen" parent="." instance=ExtResource("25_fullmap")]
+
+[node name="HelpScreen" parent="." instance=ExtResource("45_helpscreen")]

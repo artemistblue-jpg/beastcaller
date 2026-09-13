@@ -13,6 +13,7 @@ extends CanvasLayer
 @onready var party_button: Button = $ActionButtons/PartyButton
 @onready var quest_button: Button = $ActionButtons/QuestButton
 @onready var release_button: Button = $ActionButtons/ReleaseButton
+@onready var help_button: Button = $HelpButton
 
 var _player: Node = null
 
@@ -27,6 +28,7 @@ func _ready() -> void:
 	party_button.pressed.connect(_on_party_pressed)
 	quest_button.pressed.connect(_on_quest_pressed)
 	release_button.pressed.connect(_on_release_pressed)
+	help_button.pressed.connect(_on_help_pressed)
 	MonsterRoster.squad_mode_changed.connect(_refresh_release_button)
 	# Also refresh if premium ever gets granted (e.g. a future "Buy
 	# Premium" button) while this screen is already open, so the button
@@ -87,6 +89,12 @@ func _on_quest_pressed() -> void:
 	var quest_screens := get_tree().get_nodes_in_group("quest_screen")
 	if quest_screens.size() > 0 and quest_screens[0].has_method("toggle"):
 		quest_screens[0].toggle()
+
+
+func _on_help_pressed() -> void:
+	var help_screens := get_tree().get_nodes_in_group("help_screen")
+	if help_screens.size() > 0 and help_screens[0].has_method("toggle"):
+		help_screens[0].toggle()
 
 
 ## Flips the whole squad between following the player and roaming/fighting
