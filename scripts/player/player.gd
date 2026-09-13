@@ -281,6 +281,13 @@ func _try_attack() -> void:
 	# to at least read as a distinct, weightier hit from the grounded jab.
 	_fire_punch("Punch_Cross" if not is_on_floor() else "Punch_Jab")
 
+	# A rock/tree in range takes priority over the combat sweep below,
+	# same reasoning as the chest check above — this swing goes toward
+	# breaking it (see gatherable_node.gd) rather than also being wasted
+	# on a fight-target check when there's nothing to punch there.
+	if _try_gather():
+		return
+
 	for body in attack_area.get_overlapping_bodies():
 		if not body.has_method("take_damage"):
 			continue
@@ -429,6 +436,17 @@ func _try_tame() -> void:
 			var data: Dictionary = candidate.attempt_tame(GauntletManager.tier)
 			if data.is_empty():
 				print("Taming failed — it's fighting back!")
+				var species: String = "It"
+				if "species_name" in candidate:
+					species = String(candidate.species_name)
+				# HUD is looked up by group rather than cached — a failed
+				# tame is rare enough that this costs nothing, and it keeps
+				# player.gd from needing a standing reference to a UI node.
+				var hud := get_tree().get_first_node_in_group("hud")
+				if hud and hud.has_method("show_notification"):
+					hud.show_notification(
+						"%s got more aggressive!" % species, Color(0.95, 0.3, 0.2)
+					)
 			else:
 				MonsterRoster.add_to_collection(data)
 				MonsterRoster.spawn_squad(self)

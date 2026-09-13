@@ -27,7 +27,7 @@ signal opened
 ## old fixed-position pickups did.
 const LOOT_TABLE: Dictionary = {
 	"herb": 5,
-	"scrap_metal": 5,
+	"ore": 5,
 	"battery_cell": 2,
 	"ancient_sigil": 1,
 }

@@ -89,6 +89,24 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
+[node name="Tools" type="ScrollContainer" parent="Root/Panel/VBox/Tabs"]
+visible = false
+layout_mode = 2
+
+[node name="ToolsList" type="VBoxContainer" parent="Root/Panel/VBox/Tabs/Tools"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="Placeables" type="ScrollContainer" parent="Root/Panel/VBox/Tabs"]
+visible = false
+layout_mode = 2
+
+[node name="PlaceablesList" type="VBoxContainer" parent="Root/Panel/VBox/Tabs/Placeables"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
 [node name="Craft" type="ScrollContainer" parent="Root/Panel/VBox/Tabs"]
 visible = false
 layout_mode = 2

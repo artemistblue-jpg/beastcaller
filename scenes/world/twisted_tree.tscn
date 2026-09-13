@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/gatherable_node.gd" id="1_gather"]
+[ext_resource type="PackedScene" path="res://environment/nature/tree_twisted/TwistedTree_2.gltf" id="2_model"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_trunk"]
+radius = 1.0
+height = 3.0
+
+[node name="TwistedTree" type="StaticBody3D"]
+script = ExtResource("1_gather")
+skill_id = "woodcutting"
+item_id = "wood"
+yield_min = 1
+yield_max = 2
+respawn_delay = 30.0
+base_required_hits = 3
+tool_item_id = "axe"
+tool_required_hits = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("CylinderShape3D_trunk")
+
+[node name="TreeModel" parent="." instance=ExtResource("2_model")]
+
+[editable path="TreeModel"]

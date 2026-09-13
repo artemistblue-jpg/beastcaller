@@ -5,6 +5,13 @@ extends Node3D
 ## squad next to them). Each CreatureSpawner restores its own respawn
 ## cooldown independently — see creature_spawner.gd.
 
+## Holds anything the player has placed into the world themselves (right
+## now, just crafted Stone Path pieces — see item_database.gd's
+## "stone_path" item and InventoryManager.use_item()). Kept separate from
+## the hand-placed Scenery/Decorations nodes so save/load only ever has
+## to walk this one container rather than diffing the whole scene tree.
+@onready var placed_decorations: Node3D = $PlacedDecorations
+
 
 func _ready() -> void:
 	# Deferred so every child (Player, spawners, etc.) has already run
@@ -29,9 +36,11 @@ func _apply_save_data() -> void:
 	_apply_player_data(player, data.get("player", {}))
 	_apply_roster_data(data.get("roster", {}), player)
 	_apply_inventory_data(data.get("inventory", {}))
+	_apply_tool_data(data.get("tools", {}))
 	_apply_gauntlet_data(data.get("gauntlet", {}))
 	_apply_skill_data(data.get("skills", {}))
 	_apply_quest_data(data.get("quests", {}))
+	_apply_placed_decorations(data.get("placed_decorations", []))
 
 
 ## A brand-new save (or an old save from before the inventory system
@@ -39,7 +48,7 @@ func _apply_save_data() -> void:
 ## something to test crafting/the gauntlet with right away.
 func _seed_starting_inventory() -> void:
 	InventoryManager.add_item("herb", 4)
-	InventoryManager.add_item("scrap_metal", 4)
+	InventoryManager.add_item("ore", 4)
 	InventoryManager.add_item("battery_cell", 1)
 
 
@@ -70,6 +79,15 @@ func _apply_inventory_data(inventory_data: Dictionary) -> void:
 		_seed_starting_inventory()
 		return
 	InventoryManager.load_save_data(inventory_data)
+
+
+## ToolManager's own default (no tools owned) already covers a brand-new
+## save, so this only needs to act when there's real saved state to
+## restore — same reasoning as the gauntlet/skills below.
+func _apply_tool_data(tool_data: Dictionary) -> void:
+	if tool_data.is_empty():
+		return
+	ToolManager.load_save_data(tool_data)
 
 
 ## The gauntlet's own defaults (tier 1, full energy) already cover a
@@ -140,3 +158,61 @@ func _to_dict_array(raw: Array) -> Array[Dictionary]:
 		if entry is Dictionary:
 			result.append(entry)
 	return result
+
+
+## Instances scene_path under PlacedDecorations at global_pos, facing
+## rotation_y — called live by InventoryManager.use_item() (a PLACEABLE
+## item like a crafted Stone Path) and again at load time by
+## _apply_placed_decorations() below. Stamps scene_path onto the instance
+## as metadata purely so get_placed_decorations_data() can read it back
+## at save time without keeping a second, parallel list of its own that
+## could drift out of sync with the actual scene tree. Returns null (and
+## adds nothing) if scene_path doesn't point at a loadable scene.
+func add_placed_decoration(scene_path: String, global_pos: Vector3, rotation_y: float) -> Node3D:
+	var scene: PackedScene = load(scene_path)
+	if scene == null:
+		return null
+
+	var instance := scene.instantiate()
+	placed_decorations.add_child(instance)
+	instance.set_meta("scene_path", scene_path)
+
+	if not (instance is Node3D):
+		return null
+	var instance_3d: Node3D = instance
+	instance_3d.global_position = global_pos
+	instance_3d.rotation.y = rotation_y
+	return instance_3d
+
+
+## Read by SaveManager.save_game() (via get_tree().current_scene, since
+## this project only ever has the one world scene loaded) so a placed
+## Stone Path — or anything else placed this way in the future — survives
+## a reload instead of only lasting the current session.
+func get_placed_decorations_data() -> Array:
+	var result: Array = []
+	for child in placed_decorations.get_children():
+		if not child.has_meta("scene_path") or not (child is Node3D):
+			continue
+		var child_3d: Node3D = child
+		result.append({
+			"scene_path": String(child.get_meta("scene_path")),
+			"position": [child_3d.global_position.x, child_3d.global_position.y, child_3d.global_position.z],
+			"rotation_y": child_3d.rotation.y,
+		})
+	return result
+
+
+func _apply_placed_decorations(entries: Array) -> void:
+	for entry in entries:
+		if not (entry is Dictionary):
+			continue
+		var scene_path: String = String(entry.get("scene_path", ""))
+		var pos: Array = entry.get("position", [])
+		if scene_path == "" or pos.size() != 3:
+			continue
+		add_placed_decoration(
+			scene_path,
+			Vector3(pos[0], pos[1], pos[2]),
+			float(entry.get("rotation_y", 0.0)),
+		)

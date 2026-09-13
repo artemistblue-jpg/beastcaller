@@ -16,6 +16,8 @@ extends CanvasLayer
 @onready var gauntlet_list: VBoxContainer = $Root/Panel/VBox/Tabs/Gauntlet/GauntletList
 @onready var materials_list: VBoxContainer = $Root/Panel/VBox/Tabs/Materials/MaterialsList
 @onready var key_items_list: VBoxContainer = $Root/Panel/VBox/Tabs/KeyItems/KeyItemsList
+@onready var tools_list: VBoxContainer = $Root/Panel/VBox/Tabs/Tools/ToolsList
+@onready var placeables_list: VBoxContainer = $Root/Panel/VBox/Tabs/Placeables/PlaceablesList
 @onready var craft_list: VBoxContainer = $Root/Panel/VBox/Tabs/Craft/CraftList
 @onready var close_button: Button = $Root/Panel/VBox/TitleRow/CloseButton
 
@@ -31,7 +33,9 @@ func _ready() -> void:
 	tabs.set_tab_title(1, "Gauntlet")
 	tabs.set_tab_title(2, "Materials")
 	tabs.set_tab_title(3, "Key Items")
-	tabs.set_tab_title(4, "Craft")
+	tabs.set_tab_title(4, "Tools")
+	tabs.set_tab_title(5, "Placeables")
+	tabs.set_tab_title(6, "Craft")
 
 	close_button.pressed.connect(close)
 	InventoryManager.inventory_changed.connect(_refresh)
@@ -74,6 +78,8 @@ func _refresh() -> void:
 	_populate_list(gauntlet_list, ItemDatabase.ItemType.GAUNTLET, true)
 	_populate_list(materials_list, ItemDatabase.ItemType.MATERIAL, false)
 	_populate_list(key_items_list, ItemDatabase.ItemType.KEY, false)
+	_populate_list(tools_list, ItemDatabase.ItemType.TOOL, true)
+	_populate_list(placeables_list, ItemDatabase.ItemType.PLACEABLE, true)
 	_populate_craft_list()
 
 

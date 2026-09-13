@@ -41,10 +41,10 @@ const QUESTS: Dictionary = {
 	},
 	"stock_the_shelves": {
 		"title": "Stock the Shelves",
-		"description": "With no one left to gather them, materials are just sitting out in the open fields. Bring back some scrap metal and herbs.",
+		"description": "With no one left to gather them, materials are just sitting out in the open fields. Bring back some ore and herbs.",
 		"requires": [],
 		"objectives": [
-			{"type": "have_item", "item_id": "scrap_metal", "count": 6, "label": "Scrap Metal"},
+			{"type": "have_item", "item_id": "ore", "count": 6, "label": "Ore"},
 			{"type": "have_item", "item_id": "herb", "count": 6, "label": "Herb"},
 		],
 		"rewards": {"essence": 15, "items": {"battery_cell": 1}},

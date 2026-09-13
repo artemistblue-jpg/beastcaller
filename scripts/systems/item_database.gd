@@ -17,7 +17,7 @@ extends Node
 ## InventoryManager and the inventory UI look everything up by id
 ## through this table — nothing else should read ITEMS/RECIPES directly.
 
-enum ItemType { CONSUMABLE, GAUNTLET, KEY, MATERIAL }
+enum ItemType { CONSUMABLE, GAUNTLET, KEY, MATERIAL, TOOL, PLACEABLE }
 
 const ITEMS: Dictionary = {
 	"health_potion": {
@@ -58,9 +58,9 @@ const ITEMS: Dictionary = {
 		"stack_max": 50,
 		"color": Color(0.45, 0.7, 0.35),
 	},
-	"scrap_metal": {
-		"name": "Scrap Metal",
-		"description": "Salvaged parts, often pried out of an ore vein. Used in crafting.",
+	"ore": {
+		"name": "Ore",
+		"description": "Raw ore, mined out of a rock vein. Used in crafting.",
 		"type": ItemType.MATERIAL,
 		"stack_max": 50,
 		"color": Color(0.55, 0.55, 0.6),
@@ -117,16 +117,45 @@ const ITEMS: Dictionary = {
 		"color": Color(0.9, 0.75, 0.2),
 		"energy_amount": 70.0,
 	},
+	"pickaxe": {
+		"name": "Pickaxe",
+		"description": "Once crafted, breaks rocks in far fewer swings than bare hands. A permanent upgrade — use it once to equip it for good.",
+		"type": ItemType.TOOL,
+		"stack_max": 1,
+		"color": Color(0.6, 0.6, 0.65),
+		"unlocks_tool": "pickaxe",
+	},
+	"axe": {
+		"name": "Axe",
+		"description": "Once crafted, fells trees in far fewer swings than bare hands. A permanent upgrade — use it once to equip it for good.",
+		"type": ItemType.TOOL,
+		"stack_max": 1,
+		"color": Color(0.6, 0.45, 0.25),
+		"unlocks_tool": "axe",
+	},
+	"stone_path": {
+		"name": "Stone Path",
+		"description": "A crafted paving stone. Use it to lay one down on the ground right where you're standing, facing the way you're facing.",
+		"type": ItemType.PLACEABLE,
+		"stack_max": 50,
+		"color": Color(0.65, 0.65, 0.68),
+		# Read by InventoryManager.use_item() to know what to instance
+		# into the world — see world.gd's add_placed_decoration().
+		"scene_path": "res://scenes/world/rock_path_piece.tscn",
+	},
 }
 
 ## item_id -> {"result_qty": int, "materials": {material_id: qty, ...}}
 const RECIPES: Dictionary = {
 	"health_potion": {"result_qty": 1, "materials": {"herb": 2}},
-	"battery_cell": {"result_qty": 1, "materials": {"scrap_metal": 2}},
-	"gauntlet_core_ii": {"result_qty": 1, "materials": {"scrap_metal": 5, "herb": 3}},
+	"battery_cell": {"result_qty": 1, "materials": {"ore": 2}},
+	"gauntlet_core_ii": {"result_qty": 1, "materials": {"ore": 5, "herb": 3}},
 	"fish_stew": {"result_qty": 1, "materials": {"fish": 2, "herb": 1}},
 	"beast_tonic": {"result_qty": 1, "materials": {"beast_fang": 1, "herb": 2}},
-	"charged_cell": {"result_qty": 1, "materials": {"spark_shard": 1, "scrap_metal": 2}},
+	"charged_cell": {"result_qty": 1, "materials": {"spark_shard": 1, "ore": 2}},
+	"pickaxe": {"result_qty": 1, "materials": {"ore": 5, "wood": 3}},
+	"axe": {"result_qty": 1, "materials": {"wood": 5, "ore": 3}},
+	"stone_path": {"result_qty": 2, "materials": {"ore": 1}},
 }
 
 ## item_id -> Monster Essence cost for buying one unit from the NPC

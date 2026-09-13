@@ -28,6 +28,10 @@ func _ready() -> void:
 	quest_button.pressed.connect(_on_quest_pressed)
 	release_button.pressed.connect(_on_release_pressed)
 	MonsterRoster.squad_mode_changed.connect(_refresh_release_button)
+	# Also refresh if premium ever gets granted (e.g. a future "Buy
+	# Premium" button) while this screen is already open, so the button
+	# doesn't keep showing "PREMIUM" after the player's already bought it.
+	PremiumManager.premium_changed.connect(func(_is_premium: bool) -> void: _refresh_release_button(MonsterRoster.squad_independent))
 	_refresh_release_button(MonsterRoster.squad_independent)
 
 
@@ -86,13 +90,23 @@ func _on_quest_pressed() -> void:
 
 
 ## Flips the whole squad between following the player and roaming/fighting
-## on their own — see MonsterRoster.set_squad_independent(). The button
-## label always reflects the CURRENT state (what pressing it will do is
-## the opposite), same convention as a mute button showing a speaker icon
+## on their own — see MonsterRoster.set_squad_independent(). Premium-gated
+## (see premium_manager.gd) — currently unlocked for everyone by default
+## since there's no real purchase flow yet, but the check is already in
+## place so flipping PremiumManager.DEFAULT_IS_PREMIUM to false later is
+## the only change needed to actually start gating it. The button label
+## always reflects the CURRENT state (what pressing it will do is the
+## opposite), same convention as a mute button showing a speaker icon
 ## when sound is on.
 func _on_release_pressed() -> void:
+	if not PremiumManager.is_premium:
+		DialogueBox.say(["Releasing your squad to fight on their own is a premium feature."])
+		return
 	MonsterRoster.set_squad_independent(not MonsterRoster.squad_independent)
 
 
 func _refresh_release_button(is_independent: bool) -> void:
+	if not PremiumManager.is_premium:
+		release_button.text = "PREMIUM"
+		return
 	release_button.text = "RECALL" if is_independent else "RELEASE"

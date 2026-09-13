@@ -14,6 +14,8 @@ extends CanvasLayer
 @onready var squad_label: Label = $Margin/VBox/SquadLabel
 @onready var restart_button: Button = $RestartButton
 @onready var restart_confirm: ConfirmationDialog = $RestartConfirm
+@onready var notification_label: Label = $NotificationLabel
+@onready var notification_timer: Timer = $NotificationTimer
 
 
 func _ready() -> void:
@@ -29,7 +31,36 @@ func _ready() -> void:
 	restart_button.pressed.connect(_on_restart_pressed)
 	restart_confirm.confirmed.connect(_on_restart_confirmed)
 
+	InventoryManager.item_obtained.connect(_on_item_obtained)
+	notification_timer.timeout.connect(_on_notification_timeout)
+
 	call_deferred("_find_player")
+
+
+## Quick "+N Item Name" pop, tinted with the item's own inventory color,
+## every time something is actually added to the inventory (gathering,
+## loot drops, crafting output, shop buys — see
+## InventoryManager.item_obtained).
+func _on_item_obtained(item_id: String, amount: int) -> void:
+	show_notification("+%d %s" % [amount, ItemDatabase.get_display_name(item_id)], ItemDatabase.get_color(item_id))
+
+
+## Generic one-line on-screen pop — used for item pickups above and for
+## a failed tame attempt (see player.gd's _try_tame(), which looks this
+## HUD up via the "hud" group and calls this directly rather than
+## needing its own dedicated notification UI). A pop that arrives while
+## another is still showing just restarts the same timer/label instead
+## of queuing, so the newer one simply keeps the notice on screen a bit
+## longer rather than stacking multiple lines.
+func show_notification(text: String, color: Color = Color(1, 1, 1, 1), duration: float = 1.2) -> void:
+	notification_label.text = text
+	notification_label.modulate = color
+	notification_label.visible = true
+	notification_timer.start(duration)
+
+
+func _on_notification_timeout() -> void:
+	notification_label.visible = false
 
 
 ## Confirm-then-restart rather than acting on the first tap — this

@@ -6,11 +6,11 @@
 [ext_resource type="PackedScene" path="res://characters/monsters/goleling.glb" id="4_model"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
-radius = 0.4
-height = 1.8
+radius = 0.2
+height = 0.9
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_attack"]
-radius = 1.6
+radius = 0.8
 
 [node name="HostileCreature" type="CharacterBody3D"]
 script = ExtResource("1_script")
@@ -19,6 +19,7 @@ target_group = &"player_side"
 species_name = "Feral Stalker"
 element = 3
 role = 1
+attack_range = 0.8
 can_be_tamed = true
 tame_health_fraction = 0.25
 base_capture_chance = 0.3
@@ -28,17 +29,18 @@ loot_min = 1
 loot_max = 1
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
 shape = SubResource("CapsuleShape3D_body")
 
 [node name="CreatureModel" parent="." instance=ExtResource("4_model")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("2_health")
-max_health = 96.0
+max_health = 192.0
 
 [node name="AttackArea3D" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
 collision_layer = 0
 collision_mask = 1
 
@@ -46,6 +48,6 @@ collision_mask = 1
 shape = SubResource("SphereShape3D_attack")
 
 [node name="HealthBar" parent="." instance=ExtResource("3_healthbar")]
-height_offset = 2.1
+height_offset = 1.05
 
 [editable path="CreatureModel"]

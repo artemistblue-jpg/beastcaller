@@ -6,17 +6,18 @@
 [ext_resource type="PackedScene" path="res://characters/monsters/pigeon.glb" id="4_model"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
-radius = 0.35
-height = 1.2
+radius = 0.175
+height = 0.6
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_attack"]
-radius = 1.3
+radius = 0.65
 
 [node name="WildMonster" type="CharacterBody3D"]
 script = ExtResource("1_script")
 species_name = "Sparkit"
 element = 4
 role = 0
+attack_range = 0.65
 base_capture_chance = 0.85
 loot_item_id = "spark_shard"
 loot_chance = 0.45
@@ -24,17 +25,18 @@ loot_min = 1
 loot_max = 2
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
 shape = SubResource("CapsuleShape3D_body")
 
 [node name="CreatureModel" parent="." instance=ExtResource("4_model")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
 
 [node name="HealthComponent" type="Node" parent="."]
 script = ExtResource("2_health")
-max_health = 48.0
+max_health = 96.0
 
 [node name="AttackArea3D" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
 collision_layer = 0
 collision_mask = 1
 
@@ -43,6 +45,6 @@ shape = SubResource("SphereShape3D_attack")
 
 [node name="HealthBar" parent="." instance=ExtResource("3_healthbar")]
 width = 0.8
-height_offset = 1.5
+height_offset = 0.75
 
 [editable path="CreatureModel"]

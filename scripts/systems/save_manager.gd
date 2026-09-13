@@ -105,6 +105,7 @@ func restart_game() -> void:
 
 	MonsterRoster.reset()
 	InventoryManager.reset()
+	ToolManager.reset()
 	GauntletManager.reset()
 	SkillManager.reset()
 	QuestManager.reset()
@@ -129,6 +130,14 @@ func save_game() -> void:
 		var health: HealthComponent = player.get_node("HealthComponent")
 		player_data["health"] = health.current_health
 
+	# The world node isn't an autoload like everything else being pulled
+	# from here, so it's reached the same way spawners/player are — via
+	# the scene tree — rather than through a to_save_data() method.
+	var world := get_tree().current_scene
+	var placed_decorations: Array = []
+	if world and world.has_method("get_placed_decorations_data"):
+		placed_decorations = world.get_placed_decorations_data()
+
 	var save_data: Dictionary = {
 		"player": player_data,
 		"roster": {
@@ -139,9 +148,11 @@ func save_game() -> void:
 		"spawners": spawner_states,
 		"story_flags": story_flags,
 		"inventory": InventoryManager.to_save_data(),
+		"tools": ToolManager.to_save_data(),
 		"gauntlet": GauntletManager.to_save_data(),
 		"skills": SkillManager.to_save_data(),
 		"quests": QuestManager.to_save_data(),
+		"placed_decorations": placed_decorations,
 	}
 
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)

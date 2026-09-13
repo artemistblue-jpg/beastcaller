@@ -6,6 +6,12 @@ extends Node
 ## to_save_data()/load_save_data() and world.gd.
 
 signal inventory_changed
+## Fired whenever an item is actually added — gathering, loot drops,
+## crafting output, shop purchases — so UI (see hud.gd) can pop up a
+## quick "+N Item" notice without needing to diff inventory state itself.
+## Carries the amount actually gained, which can be less than what was
+## requested if the stack was already near stack_max.
+signal item_obtained(item_id: String, amount: int)
 
 var items: Dictionary = {}  # item_id -> quantity
 
@@ -15,8 +21,12 @@ func add_item(item_id: String, amount: int = 1) -> void:
 		return
 	var stack_max: int = ItemDatabase.get_stack_max(item_id)
 	var current: int = items.get(item_id, 0)
-	items[item_id] = min(current + amount, stack_max)
+	var new_amount: int = min(current + amount, stack_max)
+	items[item_id] = new_amount
 	inventory_changed.emit()
+	var gained: int = new_amount - current
+	if gained > 0:
+		item_obtained.emit(item_id, gained)
 
 
 ## Returns false (and changes nothing) if there isn't enough of the item
@@ -75,7 +85,47 @@ func use_item(item_id: String, player: Node) -> bool:
 				return true
 			return false
 
+	if item_type == ItemDatabase.ItemType.TOOL:
+		if definition.has("unlocks_tool"):
+			ToolManager.unlock_tool(String(definition["unlocks_tool"]))
+			remove_item(item_id, 1)
+			return true
+		return false
+
+	if item_type == ItemDatabase.ItemType.PLACEABLE:
+		return _place_in_world(item_id, definition, player)
+
 	return false
+
+
+## Instances a PLACEABLE item's scene into the live world a short
+## distance in front of wherever "player" is currently facing (e.g. a
+## crafted Stone Path piece), rather than requiring its own dedicated
+## placement/aiming UI — good enough for a "use to drop one down" item.
+## Delegates the actual instancing to world.gd (found via
+## get_tree().current_scene, since this project only ever has the one
+## world scene loaded) so PlacedDecorations stays a single source of
+## truth for both live placement and save/load — see
+## world.gd's add_placed_decoration()/get_placed_decorations_data().
+func _place_in_world(item_id: String, definition: Dictionary, player: Node) -> bool:
+	if not definition.has("scene_path") or not (player is Node3D):
+		return false
+
+	var world := player.get_tree().current_scene
+	if world == null or not world.has_method("add_placed_decoration"):
+		return false
+
+	var player_3d: Node3D = player
+	var forward: Vector3 = -player_3d.global_transform.basis.z
+	var place_position: Vector3 = player_3d.global_position + forward * 1.5
+	var instance: Node3D = world.add_placed_decoration(
+		String(definition["scene_path"]), place_position, player_3d.rotation.y
+	)
+	if instance == null:
+		return false
+
+	remove_item(item_id, 1)
+	return true
 
 
 func can_craft(item_id: String) -> bool:

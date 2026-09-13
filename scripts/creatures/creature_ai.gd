@@ -126,15 +126,26 @@ var power_level: int = 1
 
 ## Set by MonsterRoster.set_squad_independent() (the RELEASE/RECALL
 ## button — see touch_controls.gd) for player-side summons only. Once
-## true, this summon stops following its owner entirely and wanders on
-## its own instead — see set_independent() and _wander(). Combat itself
-## doesn't change either way: an independent summon still fights
-## whatever wanders into its own detection_range, same as always.
+## true, this summon stops following its owner entirely: it wanders when
+## there's nothing to fight (see set_independent() and _wander()), but
+## unlike a normal summon it actively hunts down the nearest
+## target_group member anywhere on the map the instant one exists,
+## rather than only reacting to whatever wanders into its own
+## detection_range — see _find_target(). No extra plumbing was needed to
+## make its kills pay out loot/essence: HealthComponent.died (and every
+## _on_died()/_capture() handler downstream of it) fires purely off
+## health hitting zero, with no idea who dealt the last hit, so an
+## independent summon's kills already reward the player exactly like a
+## kill the player lands themself.
 var is_independent: bool = false
-var _wander_origin: Vector3 = Vector3.ZERO
 var _wander_target: Vector3 = Vector3.ZERO
 var _wander_timer: float = 0.0
-const INDEPENDENT_WANDER_RADIUS: float = 10.0
+## Independent summons can wander anywhere on the map now, rather than
+## being tied to a small radius around wherever they were released — see
+## _wander(). Kept a few units inside world.tscn's boundary walls (the
+## Boundaries nodes sit at |x|/|z| == 121) so a picked wander target
+## never ends up clipped right against one.
+const WORLD_BOUNDS_HALF_EXTENT: float = 115.0
 
 
 func _ready() -> void:
@@ -216,7 +227,6 @@ func get_role() -> int:
 func set_independent(value: bool) -> void:
 	is_independent = value
 	if value:
-		_wander_origin = global_position
 		_wander_target = global_position
 		_wander_timer = 0.0
 
@@ -262,6 +272,14 @@ func _apply_species_model() -> void:
 	var model := model_scene.instantiate()
 	model.name = "CreatureModel"
 	add_child(model)
+	# Match the 0.5 scale baked into every wild/hostile species' own
+	# CreatureModel instance (see each species .tscn) — without this a
+	# tamed squad member would render at full native model size while
+	# its wild counterpart (and its own collision/attack shapes here in
+	# summon_monster.tscn, already sized for the smaller look) is half
+	# that, making tamed monsters look oddly huge next to the player.
+	if model is Node3D:
+		(model as Node3D).scale = Vector3(0.5, 0.5, 0.5)
 
 
 func take_damage(amount: float) -> void:
@@ -388,22 +406,24 @@ func _idle_movement(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, 0.0, acceleration * delta)
 
 
-## Independent-mode idle behavior — same shape as wild_monster.gd's own
-## _process_wander(): pick a random point within INDEPENDENT_WANDER_RADIUS
-## of wherever this summon was when it was released, drift toward it,
-## then pick a new one after a random pause. It'll still break off to
-## fight (see _physics_process()'s target check, which runs before this
-## is ever called) the moment something shows up in detection_range.
+## Independent-mode idle behavior — loosely the same shape as
+## wild_monster.gd's own _process_wander(), except the random point is
+## picked anywhere within the map's bounds (WORLD_BOUNDS_HALF_EXTENT)
+## instead of near a fixed home position, so a released squad member can
+## roam the whole map rather than pacing a small circle. Drifts toward
+## the picked point, then picks a new one after a random pause. This is
+## only ever reached when _find_target() came up empty — see
+## _find_target() for how an independent summon actually goes looking
+## for something to kill instead of waiting for it to wander close.
 func _wander(delta: float) -> void:
 	_wander_timer -= delta
 	if _wander_timer <= 0.0:
 		_wander_timer = randf_range(2.0, 5.0)
-		var offset := Vector3(
-			randf_range(-INDEPENDENT_WANDER_RADIUS, INDEPENDENT_WANDER_RADIUS),
-			0.0,
-			randf_range(-INDEPENDENT_WANDER_RADIUS, INDEPENDENT_WANDER_RADIUS)
+		_wander_target = Vector3(
+			randf_range(-WORLD_BOUNDS_HALF_EXTENT, WORLD_BOUNDS_HALF_EXTENT),
+			global_position.y,
+			randf_range(-WORLD_BOUNDS_HALF_EXTENT, WORLD_BOUNDS_HALF_EXTENT)
 		)
-		_wander_target = _wander_origin + offset
 
 	var to_target: Vector3 = _wander_target - global_position
 	to_target.y = 0.0
@@ -420,7 +440,11 @@ func _wander(delta: float) -> void:
 func _find_target() -> void:
 	var candidates := get_tree().get_nodes_in_group(target_group)
 	var closest: Node3D = null
-	var closest_distance := detection_range
+	# A released (independent) summon hunts across the entire map instead
+	# of only noticing targets within detection_range — everyone else
+	# (hostile wildlife, and a summon still following its owner) keeps
+	# the normal detection-range-limited behavior.
+	var closest_distance: float = INF if is_independent else detection_range
 
 	for candidate in candidates:
 		if not (candidate is Node3D):

@@ -4,6 +4,7 @@
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_script")
+groups = ["hud"]
 
 [node name="Margin" type="MarginContainer" parent="."]
 offset_left = 16.0
@@ -57,9 +58,9 @@ text = "Squad: (empty)"
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -118.0
-offset_top = 16.0
+offset_top = 176.0
 offset_right = -16.0
-offset_bottom = 52.0
+offset_bottom = 212.0
 theme_override_font_sizes/font_size = 16
 text = "Restart"
 
@@ -68,3 +69,22 @@ title = "Restart game?"
 initial_position = 1
 dialog_text = "This wipes ALL progress (roster, inventory, essence, gauntlet) and jumps back to a brand-new game, intro dialogue included. Only meant for testing — there's no undo."
 ok_button_text = "Restart"
+
+[node name="NotificationLabel" type="Label" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_right = 150.0
+offset_top = 16.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+horizontal_alignment = 1
+text = ""
+visible = false
+
+[node name="NotificationTimer" type="Timer" parent="."]
+wait_time = 1.2
+one_shot = true
